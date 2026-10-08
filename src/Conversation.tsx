@@ -1,32 +1,51 @@
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Button } from '@/components/ui/button'
+import AssistantReply from './AssistantReply'
+import { buildGreeting, registerVisit } from './greeting'
+import ScopeMenu from './ScopeMenu'
+import AttachMenu from './AttachMenu'
+import type { Scope } from './ScopeMenu'
+import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { useEffect, useRef, useState } from 'react'
 import type { KeyboardEvent } from 'react'
 import { ThinkingOrb } from 'thinking-orbs'
+import { BorderBeam } from 'border-beam'
+import FloatingMascot from './FloatingMascot'
+import Logo3D from './Logo3D'
+import ProfileMenu from './ProfileMenu'
+import SettingsDialog from './SettingsDialog'
+import Walkthrough from './Walkthrough'
+import type { Step } from './Walkthrough'
+import { MASCOTS, loadMascot, saveMascot, loadShowMascot, saveShowMascot } from './mascots'
+import type { MascotId } from './mascots'
 import './Conversation.css'
 import {
   IconNewChat, IconProjects, IconAgent, IconWorkflow, IconMarket,
   IconResearch, IconApps, IconAdmin, IconSettings, IconPanel, IconChevron,
-  IconSearch, IconBell, IconHelp, IconMic, IconSend, IconScope, IconFolderPlus,
+  IconSearch, IconBell, IconHelp, IconMic, IconSend, IconFolderPlus,
   IconSpark, IconSun, IconMoon, IconClose, IconFolder, IconSliders, IconChat, IconFork,
   IconStar, IconGrid, IconBars, IconDownload, IconShare, IconSort, IconFile, IconRecords, IconClock,
-  IconPalette, IconCode,
+  IconPalette, IconCode, IconOntology, IconInbox, IconGlobe,
 } from './icons'
 import DesignLab from './DesignLab'
 import ProjectDetail from './ProjectDetail'
 
-type Row = { name: string; status: 'Open' | 'In Progress' | 'Completed'; date: string; units: string }
+type Row = { name: string; status: 'Open' | 'In progress' | 'Completed'; date: string; units: string }
 
 const PREVIEW_ROWS: Row[] = [
   { name: 'Zifo', status: 'Open', date: '05 Mar 2023', units: 'EUR' },
-  { name: 'Maveric', status: 'In Progress', date: '05 Mar 2023', units: 'GBP' },
+  { name: 'Maveric', status: 'In progress', date: '05 Mar 2023', units: 'GBP' },
   { name: 'Stellium', status: 'Completed', date: '05 Mar 2023', units: 'EUR' },
-  { name: 'Instellar', status: 'In Progress', date: '05 Mar 2023', units: 'EUR' },
-  { name: 'Nest Digital', status: 'In Progress', date: '05 Mar 2023', units: 'EUR' },
+  { name: 'Instellar', status: 'In progress', date: '05 Mar 2023', units: 'EUR' },
+  { name: 'Nest Digital', status: 'In progress', date: '05 Mar 2023', units: 'EUR' },
   { name: 'Meta', status: 'Open', date: '05 Mar 2023', units: 'GBP' },
 ]
 const statusClass = (s: Row['status']) =>
-  s === 'Completed' ? 'completed' : s === 'In Progress' ? 'progress' : 'open'
+  s === 'Completed' ? 'completed' : s === 'In progress' ? 'progress' : 'open'
 
-type Msg = { id: number; role: 'user' | 'assistant'; text: string }
+type Msg = { id: number; role: 'user' | 'assistant'; text: string; fresh?: boolean }
 
 type Chat = { id: string; group: string; title: string; dot: string; fork?: boolean }
 
@@ -34,9 +53,9 @@ const CHATS: Chat[] = [
   { id: 'c1', group: 'Today', title: 'Fork · CDU-1 scope freez…', dot: '#b9c0ca', fork: true },
   { id: 'c2', group: 'Today', title: 'CDU-1 scope freeze exce…', dot: '#b9c0ca', fork: true },
   { id: 'c3', group: 'Today', title: 'E-1104 bundle delivery slip', dot: '#3aa828' },
-  { id: 'c4', group: 'Today', title: 'Jubail pipeline ILI — top a…', dot: '#3aa828' },
-  { id: 'c5', group: 'Yesterday', title: 'IR-2214 flange leak — roo…', dot: '#fa8c16' },
-  { id: 'c6', group: 'Last Monday', title: 'IR-2214 flange leak — root …', dot: '#52c41a' },
+  { id: 'c4', group: 'Today', title: 'Jubail pipeline ILI: top a…', dot: '#3aa828' },
+  { id: 'c5', group: 'Yesterday', title: 'IR-2214 flange leak: roo…', dot: '#fa8c16' },
+  { id: 'c6', group: 'Last Monday', title: 'IR-2214 flange leak: root …', dot: '#52c41a' },
 ]
 
 /* Split a typed prompt into styled segments: /commands (blue) and @agents (orange). */
@@ -61,25 +80,78 @@ const BUILD_LOGO = `${A}/keos-build-mark.svg`
 
 type Item = { id: string; label: string; Icon: (p: { className?: string }) => JSX.Element }
 
+type Note = { id: string; title: string; body: string; when: string }
+const INBOX_ITEMS: Note[] = [
+  { id: 'i1', title: 'Atlas finished the TAR scope-freeze review', body: '12 work orders flagged for re-sequencing before the CDU-1 shutdown window.', when: '2 hours ago' },
+  { id: 'i2', title: 'You were mentioned in IR-2214 flange leak', body: 'Ravi asked you to confirm the root-cause owner before Friday.', when: 'Yesterday' },
+  { id: 'i3', title: 'Budget alert for KEOS Internal', body: "You have used 26% of this month's $30.00 allowance.", when: '3 days ago' },
+]
+const NEWS_ITEMS: Note[] = [
+  { id: 'n1', title: 'Ontology views are live', body: 'Namespaces, Induction, Explorer, Metrics and Playground now sit under Ontology in the sidebar.', when: 'Today' },
+  { id: 'n2', title: 'Three memory graph styles', body: 'Switch the project memory graph between Classic, Minimal and Neon.', when: '2 days ago' },
+  { id: 'n3', title: 'CodeGenie preview', body: 'Chat and Code modes for builds are available from the Build menu.', when: '5 days ago' },
+]
+
+const PROMPT_SAMPLES = [
+  'Summarise the key risks in the Ras Tanura turnaround schedule',
+  'Which contractors are behind on their milestones this week?',
+  '@Planner build a 3-week look-ahead for the shutdown scope',
+  'Compare planned vs. actual manhours across all active projects',
+  'What changed in the latest revision of the scope document?',
+]
+
+const ONTOLOGY = [
+  { id: 'ontology-namespaces', label: 'Namespaces' },
+  { id: 'ontology-induction', label: 'Induction' },
+  { id: 'ontology-explorer', label: 'Explorer' },
+  { id: 'ontology-metrics', label: 'Metrics' },
+  { id: 'ontology-playground', label: 'Playground' },
+]
+
 const build: Item[] = [
   { id: 'codegenie', label: 'CodeGenie', Icon: IconCode },
-  { id: 'agents', label: 'Agent Store', Icon: IconAgent },
+  { id: 'agents', label: 'Agent store', Icon: IconAgent },
   { id: 'workflows', label: 'Workflows', Icon: IconWorkflow },
   { id: 'market', label: 'Marketplace', Icon: IconMarket },
-  { id: 'designlab', label: 'Design Lab', Icon: IconPalette },
+  { id: 'designlab', label: 'Design lab', Icon: IconPalette },
 ]
 const work: Item[] = [
   { id: 'research', label: 'Research', Icon: IconResearch },
-  { id: 'apps', label: 'Apps & Artifacts', Icon: IconApps },
+  { id: 'apps', label: 'Apps and artifacts', Icon: IconApps },
 ]
 const control: Item[] = [
-  { id: 'admin', label: 'Admin & Governance', Icon: IconAdmin },
-  { id: 'settings', label: 'Setting', Icon: IconSettings },
+  { id: 'admin', label: 'Admin and governance', Icon: IconAdmin },
+  { id: 'settings', label: 'Settings', Icon: IconSettings },
+]
+
+const VISIT = registerVisit()
+
+const TOUR_STEPS: Step[] = [
+  { target: '[data-nav="newchat"]', title: 'Start a chat', body: 'Open a fresh conversation any time. Your earlier chats stay under All chats.' },
+  { target: '.scope .chip', title: 'Choose what I search', body: 'Scope decides where answers come from: this device, selected projects, or your whole organization.' },
+  { target: '.composer__attach', title: 'Add context', body: 'Attach files, pull in connectors, or turn on web search. Press Tab to use the suggested prompt.' },
+  { target: '.chats-chip', title: 'Find past chats', body: 'All chats opens your history with search. Forked chats are marked with a branch icon.' },
+  { target: '.topbar__inbox', title: 'Updates in one place', body: 'Agent results and mentions land here, with a red dot when something is new.' },
+  { target: '.profile__trigger', title: 'Make it yours', body: 'Open Personal settings to pick a mascot, or replay this tour whenever you like.' },
 ]
 
 export default function Conversation() {
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(() => window.innerWidth > 640)
   const [projectsOpen, setProjectsOpen] = useState(true)
+  const [ontologyOpen, setOntologyOpen] = useState(true)
+  const [inboxOpen, setInboxOpen] = useState(false)
+  const [inboxTab, setInboxTab] = useState<'inbox' | 'new'>('inbox')
+  const [readIds, setReadIds] = useState<string[]>(['i3', 'n3'])
+  useEffect(() => {
+    if (!inboxOpen) return
+    const onKey = (e: globalThis.KeyboardEvent) => { if (e.key === 'Escape') setInboxOpen(false) }
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [inboxOpen])
+  const unread = [...INBOX_ITEMS, ...NEWS_ITEMS].filter((n) => !readIds.includes(n.id)).length
+  const firstUnread = INBOX_ITEMS.find((n) => !readIds.includes(n.id))
   const [active, setActive] = useState('newchat')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
@@ -88,7 +160,18 @@ export default function Conversation() {
     localStorage.setItem('keos-theme', theme)
   }, [theme])
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  const [toast, setToast] = useState<{ lead: string; bold: string; sub: string } | null>(null)
+  useEffect(() => {
+    if (!toast) return
+    const t = window.setTimeout(() => setToast(null), 3500)
+    return () => window.clearTimeout(t)
+  }, [toast])
+
+  const toggleTheme = () => {
+    const next: Theme = theme === 'dark' ? 'light' : 'dark'
+    setTheme(next)
+    setToast({ lead: 'Theme set to', bold: next === 'dark' ? 'Dark' : 'Light', sub: 'Applies across every KEOS screen.' })
+  }
 
   const [input, setInput] = useState('')
   const [messages, setMessages] = useState<Msg[]>([])
@@ -99,17 +182,25 @@ export default function Conversation() {
     endRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' })
   }, [messages])
 
+  const [files, setFiles] = useState<File[]>([])
+  const [webSearch, setWebSearch] = useState(false)
+  const fileRef = useRef<HTMLInputElement>(null)
+  const [running, setRunning] = useState(false)
+  const canSend = !running && (input.trim().length > 0 || files.length > 0)
   const send = () => {
     const t = input.trim()
-    if (!t) return
+    if (!t && files.length === 0) return
     const id = Date.now()
     setMessages((m) => [
       ...m,
-      { id, role: 'user', text: t },
-      { id: id + 1, role: 'assistant', text: '' },
+      { id, role: 'user', text: t || files.map((f) => f.name).join(', ') },
+      { id: id + 1, role: 'assistant', text: '', fresh: true },
     ])
     setInput('')
-    // Document prompts open the Live Preview panel (slides in after "generating")
+    setFiles([])
+    // Running state: the prompt box shows the beam until the reply finishes streaming
+    setRunning(true)
+    // Document prompts open the Live preview panel (slides in after "generating")
     if (/\b(pdf|docx?|document|prd|report|dashboard|preview|table)\b/i.test(t)) {
       setChatsOpen(false)
       window.setTimeout(() => setPreviewOpen(true), 650)
@@ -125,14 +216,13 @@ export default function Conversation() {
 
   const [projects, setProjects] = useState([
     'Aramco Ras Tanura Turnaround (TAR…',
-    'SABIC Jubail Expansion Project…',
   ])
   const removeProject = (i: number) =>
     setProjects((p) => p.filter((_, idx) => idx !== i))
   const addProject = () =>
-    setProjects((p) => [...p, `New Project Scope ${p.length + 1}…`])
+    setProjects((p) => [...p, `New project Scope ${p.length + 1}…`])
 
-  const [chatsOpen, setChatsOpen] = useState(true)
+  const [chatsOpen, setChatsOpen] = useState(false)
   const [chatQuery, setChatQuery] = useState('')
   const [activeChatId, setActiveChatId] = useState<string | null>(null)
 
@@ -165,6 +255,13 @@ export default function Conversation() {
     setActive('newchat')
   }
 
+  const [sampleIdx, setSampleIdx] = useState(0)
+  useEffect(() => {
+    if (input) return
+    const t = setInterval(() => setSampleIdx((i) => (i + 1) % PROMPT_SAMPLES.length), 4200)
+    return () => clearInterval(t)
+  }, [input])
+
   const [codeMode, setCodeMode] = useState<'chat' | 'code'>('chat')
   const newBuild = () => {
     setMessages([])
@@ -174,72 +271,169 @@ export default function Conversation() {
     setCodeMode('chat')
   }
 
+  const [scope, setScope] = useState<Scope>('project')
+  const [mascot, setMascot] = useState<MascotId>(loadMascot)
+  const [showMascot, setShowMascot] = useState(loadShowMascot)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [tourOpen, setTourOpen] = useState(false)
+  const mascotDef = MASCOTS.find((m) => m.id === mascot) ?? MASCOTS[0]
+  const greeting = buildGreeting({ now: new Date(), firstName: 'Aswini', visit: VISIT, nextUpdate: firstUnread?.title, project: projects[0] })
+
   const composerBlock = (
     <>
       <div className="chips">
-        <button className="chip">
-          <IconScope className="chip__icon" />
-          <span>Scope: Multi Project</span>
-          <IconChevron className="chip__chev" />
-        </button>
+        <ScopeMenu value={scope} onChange={setScope} />
         {projects.map((name, i) => (
           <span key={i} className="chip chip--project">
             <IconFolder className="chip__icon" />
             <span>{name}</span>
-            <button
-              className="chip__remove"
+            <Button variant="ghost" 
+              className="h-auto chip__remove"
               aria-label={`Remove ${name}`}
               onClick={() => removeProject(i)}
             >
               <IconClose className="chip__chev" />
-            </button>
+            </Button>
           </span>
         ))}
-        <button className="chip chip--icon" aria-label="Add project scope" onClick={addProject}>
+        <Button variant="ghost" className="h-auto chip chip--icon" aria-label="Add project scope" onClick={addProject}>
           <IconFolderPlus className="chip__icon" />
-        </button>
+        </Button>
       </div>
 
-      <div className="composer">
-        <textarea
-          className="composer__input"
-          placeholder="Message KEOS — use @ to mention an agent…"
-          rows={2}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={onComposerKey}
-        />
+      <div className="composer-wrap">
+        {showMascot && (
+          <FloatingMascot
+            key={mascotDef.id}
+            directions={mascotDef.directions}
+            reactions={mascotDef.reactions}
+            name={mascotDef.name}
+            size={88}
+            onHide={() => {
+              setShowMascot(false)
+              saveShowMascot(false)
+              setToast({ lead: 'Mascot hidden.', bold: 'Turn it back on', sub: 'Open Personal settings from your profile menu.' })
+            }}
+          />
+        )}
+      <BorderBeam
+        size="md"
+        colorVariant="colorful"
+        strength={1}
+        theme={theme}
+        borderRadius={10}
+        active={running}
+        className="composer-beam"
+      >
+      <div
+        className={`composer${input.trim() ? ' is-typing' : ''}${running ? ' is-running' : ''}`}
+        aria-busy={running}
+        onPointerMove={(e) => {
+          const r = e.currentTarget.getBoundingClientRect()
+          e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`)
+          e.currentTarget.style.setProperty('--my', `${e.clientY - r.top}px`)
+        }}
+        onPointerLeave={(e) => {
+          e.currentTarget.style.removeProperty('--mx')
+          e.currentTarget.style.removeProperty('--my')
+        }}
+      >
+        <div className="composer__field">
+          <Textarea
+            className="min-h-0 [field-sizing:fixed] composer__input"
+            aria-label="Message KEOS"
+            rows={2}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Tab' && !input && !e.shiftKey) {
+                e.preventDefault()
+                setInput(PROMPT_SAMPLES[sampleIdx])
+                return
+              }
+              onComposerKey(e)
+            }}
+          />
+          {!input && (
+            <span key={sampleIdx} className="composer__ph" aria-hidden="true">
+              {PROMPT_SAMPLES[sampleIdx]}
+              <kbd className="composer__ph-key">Tab</kbd>
+            </span>
+          )}
+        </div>
+        {(files.length > 0 || webSearch) && (
+          <ul className="composer__files" aria-label="Attachments">
+            {webSearch && (
+              <li className="composer__file">
+                <IconGlobe className="composer__file-icon" />
+                <span>Web search</span>
+                <Button variant="ghost" className="h-auto composer__file-x" aria-label="Turn off web search" onClick={() => setWebSearch(false)}>
+                  <IconClose />
+                </Button>
+              </li>
+            )}
+            {files.map((f, n) => (
+              <li key={f.name + n} className="composer__file">
+                <IconFile className="composer__file-icon" />
+                <span>{f.name}</span>
+                <Button variant="ghost" className="h-auto composer__file-x" aria-label={`Remove ${f.name}`} onClick={() => setFiles((p) => p.filter((_, k) => k !== n))}>
+                  <IconClose />
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
         <div className="composer__actions">
-          <button className="composer__smart">
+          <input
+            ref={fileRef}
+            type="file"
+            multiple
+            hidden
+            onChange={(e) => {
+              const picked = Array.from(e.target.files ?? [])
+              if (picked.length) setFiles((p) => [...p, ...picked])
+              e.target.value = ''
+            }}
+          />
+          <AttachMenu
+            webSearch={webSearch}
+            onToggleWebSearch={() => setWebSearch((v) => !v)}
+            onPickFiles={() => fileRef.current?.click()}
+            onUnavailable={(what) => setToast({ lead: what, bold: 'is not wired up yet', sub: 'This prototype only attaches files from your device.' })}
+          />
+          <Button variant="ghost" className="h-auto composer__smart">
             <IconSpark className="composer__smart-icon" />
             <span>Smart</span>
             <IconChevron className="chip__chev" />
-          </button>
-          <button
-            className={`composer__mic${listening ? ' is-listening' : ''}`}
+          </Button>
+          <Button variant="ghost" 
+            className={`h-auto composer__mic${listening ? ' is-listening' : ''}`}
             onClick={() => setListening((v) => !v)}
             aria-label={listening ? 'Stop listening' : 'Voice input'}
             aria-pressed={listening}
           >
             {listening ? <ThinkingOrb state="listening" size={20} /> : <IconMic />}
-          </button>
-          <button className="composer__send" aria-label="Send" onClick={send}>
+          </Button>
+          <Button variant="ghost" className="h-auto composer__send" aria-label="Send" disabled={!canSend} onClick={send}>
             <IconSend />
-          </button>
+          </Button>
         </div>
+      </div>
+      </BorderBeam>
       </div>
     </>
   )
 
   const NavBtn = ({ id, label, Icon }: Item) => (
-    <button
-      className={`nav__item${active === id ? ' is-active' : ''}`}
+    <Button variant="ghost" 
+      data-nav={id}
+      className={`h-auto nav__item${active === id ? ' is-active' : ''}`}
       onClick={() => setActive(id)}
       title={!expanded ? label : undefined}
     >
       <Icon className="nav__icon" />
       <span className="nav__label">{label}</span>
-    </button>
+    </Button>
   )
 
   return (
@@ -247,16 +441,31 @@ export default function Conversation() {
       {/* ===================== SIDEBAR ===================== */}
       <aside className="sidebar">
         <div className="sidebar__top">
-          <img
-            className="sidebar__logo"
-            src={active === 'codegenie' ? BUILD_LOGO : `${A}/kframe.svg`}
-            alt="KEOS"
-          />
+          <div className="sidebar__id">
+            {expanded ? (
+              <img className="sidebar__logo" src={BUILD_LOGO} alt="KEOS" />
+            ) : (
+              <Button
+                variant="ghost"
+                className="h-auto sidebar__logo-btn"
+                aria-label="Expand sidebar"
+                title="Expand sidebar"
+                onClick={() => setExpanded(true)}
+              >
+                <img className="sidebar__logo" src={BUILD_LOGO} alt="" aria-hidden="true" />
+                <IconPanel className="sidebar__logo-panel" />
+              </Button>
+            )}
+            <span className="sidebar__brand">
+              KEOS
+              <IconChevron className="sidebar__brand-chev" />
+            </span>
+          </div>
           <div className="sidebar__top-right">
             {expanded && active === 'codegenie' && (
               <div className="mode-toggle" role="radiogroup" aria-label="Chat or code mode">
-                <button
-                  className={`mode-toggle__btn${codeMode === 'chat' ? ' is-active' : ''}`}
+                <Button variant="ghost" 
+                  className={`h-auto mode-toggle__btn${codeMode === 'chat' ? ' is-active' : ''}`}
                   onClick={() => setCodeMode('chat')}
                   role="radio"
                   aria-checked={codeMode === 'chat'}
@@ -264,41 +473,43 @@ export default function Conversation() {
                 >
                   <IconChat className="mode-toggle__icon" />
                   <span className="mode-toggle__dot" />
-                </button>
-                <button
-                  className={`mode-toggle__btn${codeMode === 'code' ? ' is-active' : ''}`}
+                </Button>
+                <Button variant="ghost" 
+                  className={`h-auto mode-toggle__btn${codeMode === 'code' ? ' is-active' : ''}`}
                   onClick={() => setCodeMode('code')}
                   role="radio"
                   aria-checked={codeMode === 'code'}
                   aria-label="Code mode"
                 >
                   <IconCode className="mode-toggle__icon" />
-                </button>
+                </Button>
               </div>
             )}
-            <button
-              className="sidebar__toggle"
+            <Button variant="ghost" 
+              className="h-auto sidebar__toggle"
               onClick={() => setExpanded((v) => !v)}
               aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               <IconPanel />
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="sidebar__scroll">
-          <button
-            className={`nav__item nav__item--primary${active === 'newchat' || active === 'codegenie' ? ' is-active' : ''}`}
+          <Button variant="ghost" 
+            data-nav="newchat"
+            className={`h-auto nav__item nav__item--primary${active === 'newchat' || active === 'codegenie' ? ' is-active' : ''}`}
             onClick={active === 'codegenie' ? newBuild : newChat}
-            title={!expanded ? (active === 'codegenie' ? 'New Build' : 'New Chat') : undefined}
+            title={!expanded ? (active === 'codegenie' ? 'New build' : 'New chat') : undefined}
           >
             <IconNewChat className="nav__icon" />
-            <span className="nav__label">{active === 'codegenie' ? 'New Build' : 'New Chat'}</span>
-          </button>
+            <span className="nav__label">{active === 'codegenie' ? 'New build' : 'New chat'}</span>
+          </Button>
 
           {/* Projects (expandable) */}
-          <button
-            className="nav__item"
+          <Button variant="ghost" 
+            data-nav="projects"
+            className="h-auto nav__item"
             onClick={() => (expanded ? setProjectsOpen((v) => !v) : setExpanded(true))}
             title={!expanded ? 'Projects' : undefined}
           >
@@ -307,11 +518,37 @@ export default function Conversation() {
             <IconChevron
               className={`nav__chevron${projectsOpen ? ' is-open' : ''}`}
             />
-          </button>
+          </Button>
           {expanded && projectsOpen && (
             <div className="nav__sub">
-              <button className="nav__subitem" onClick={() => setActive('project')}>All Projects</button>
-              <button className="nav__subitem">New Project</button>
+              <Button variant="ghost" className="h-auto nav__subitem" onClick={() => setActive('project')}>All projects</Button>
+              <Button variant="ghost" className="h-auto nav__subitem">New project</Button>
+            </div>
+          )}
+
+          {/* Ontology (expandable) */}
+          <Button variant="ghost"
+            data-nav="ontology"
+            className="h-auto nav__item"
+            onClick={() => (expanded ? setOntologyOpen((v) => !v) : setExpanded(true))}
+            title={!expanded ? 'Ontology' : undefined}
+          >
+            <IconOntology className="nav__icon" />
+            <span className="nav__label">Ontology</span>
+            <IconChevron className={`nav__chevron${ontologyOpen ? ' is-open' : ''}`} />
+          </Button>
+          {expanded && ontologyOpen && (
+            <div className="nav__sub">
+              {ONTOLOGY.map((o) => (
+                <Button
+                  key={o.id}
+                  variant="ghost"
+                  className={`h-auto nav__subitem${active === o.id ? ' is-active' : ''}`}
+                  onClick={() => setActive(o.id)}
+                >
+                  {o.label}
+                </Button>
+              ))}
             </div>
           )}
 
@@ -332,132 +569,139 @@ export default function Conversation() {
         </div>
 
         <div className="sidebar__footer">
-          <div className="rai" title="Responsible AI active">
-            <IconAdmin className="rai__icon" />
-            <span className="rai__text">
-              <b>RAI Trust · 94%</b>
-              <small>Responsible AI active</small>
-            </span>
-          </div>
-          <div className="user">
-            <span className="user__avatar">AB</span>
-            <span className="user__text">
-              <b>Aswini Bala</b>
-              <small>KaarTech</small>
-            </span>
-          </div>
+          <ProfileMenu onWalkthrough={() => setTourOpen(true)} onSettings={() => setSettingsOpen(true)}>
+            <div className="user">
+              <span className="user__avatar">AB</span>
+              <span className="user__text">
+                <b>Aswini Bala</b>
+                <small>KaarTech</small>
+              </span>
+            </div>
+          </ProfileMenu>
         </div>
       </aside>
-
-      {/* ===================== CHATS PANEL ===================== */}
-      {chatsOpen && active !== 'project' && (
-        <aside className="chats">
-          <div className="chats__head">
-            <span className="chats__title">{active === 'codegenie' ? 'Sessions' : 'Chats'}</span>
-            <button className="chats__icon" aria-label="Filter chats">
-              <IconSliders />
-            </button>
-            <button
-              className="chats__icon"
-              aria-label="Close chats"
-              onClick={() => setChatsOpen(false)}
-            >
-              <IconClose />
-            </button>
-          </div>
-
-          <div className="chats__search">
-            <IconSearch className="chats__search-icon" />
-            <input
-              className="chats__search-input"
-              placeholder="Search Chats Or Projects"
-              value={chatQuery}
-              onChange={(e) => setChatQuery(e.target.value)}
-            />
-          </div>
-
-          <div className="chats__scroll">
-            {filteredChats.length === 0 ? (
-              <div className="chats__empty">
-                <IconChat className="chats__empty-icon" />
-                <p>{chatQuery ? 'No Chats Found' : 'Your Chats Will Show Up Here'}</p>
-              </div>
-            ) : (
-              Object.entries(chatGroups).map(([group, items]) => (
-                <div key={group} className="chats__group">
-                  <span className="chats__group-label">{group}</span>
-                  {items.map((c) => (
-                    <button
-                      key={c.id}
-                      className={`chat-item${activeChatId === c.id ? ' is-active' : ''}`}
-                      onClick={() => openChat(c)}
-                    >
-                      <span className="chat-item__dot" style={{ background: c.dot }} />
-                      {c.fork && <IconFork className="chat-item__fork" />}
-                      <span className="chat-item__title">{c.title}</span>
-                    </button>
-                  ))}
-                </div>
-              ))
-            )}
-          </div>
-        </aside>
-      )}
 
       {/* ===================== MAIN ===================== */}
       <main className="main">
         <header className="topbar">
-          {!expanded && (
-            <button
-              className="topbar__toggle"
-              onClick={() => setExpanded(true)}
-              aria-label="Expand sidebar"
-            >
-              <IconPanel />
-            </button>
-          )}
-          {active !== 'project' && (
-            <button
-              className={`topbar__chats${chatsOpen ? ' is-active' : ''}`}
-              onClick={() => setChatsOpen((v) => !v)}
-              aria-pressed={chatsOpen}
-            >
-              <IconChat className="topbar__chats-icon" />
-              <span>{active === 'codegenie' ? 'Sessions' : 'Chats'}</span>
-            </button>
-          )}
           <nav className="crumbs">
-            <span>KEOS</span>
-            <span className="crumbs__sep">›</span>
             <span className={`crumbs__current${active === 'codegenie' ? ' crumbs__current--accent' : ''}`}>
-              {active === 'project' ? 'All Projects' : active === 'codegenie' ? 'CodeGenie' : 'Chats'}
+              {active === 'project'
+                ? 'All projects'
+                : active === 'codegenie'
+                  ? 'CodeGenie'
+                  : ONTOLOGY.find((o) => o.id === active)?.label ?? 'Chats'}
             </span>
           </nav>
           <div className="topbar__actions">
-            <button aria-label="Search"><IconSearch /></button>
-            <button aria-label="Notifications"><IconBell /></button>
-            <button aria-label="Help"><IconHelp /></button>
-            <button
+            <Button variant="ghost" className="h-auto" aria-label="Search"><IconSearch /></Button>
+            <Button
+              variant="ghost"
+              className="h-auto topbar__inbox"
+              aria-label={unread ? `Inbox, ${unread} unread` : 'Inbox'}
+              aria-expanded={inboxOpen}
+              onClick={() => setInboxOpen((v) => !v)}
+            >
+              <IconInbox />
+              {unread > 0 && <span className="topbar__dot" />}
+            </Button>
+            <Button variant="ghost" className="h-auto" aria-label="Notifications"><IconBell /></Button>
+            <Button variant="ghost" className="h-auto" aria-label="Help"><IconHelp /></Button>
+            <Button variant="ghost" className="h-auto"
               onClick={toggleTheme}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-pressed={theme === 'dark'}
               title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
-              {theme === 'dark' ? <IconSun /> : <IconMoon />}
-            </button>
+              <span key={theme} className="icon-swap">{theme === 'dark' ? <IconSun /> : <IconMoon />}</span>
+            </Button>
           </div>
         </header>
 
         <div className="main__split">
+        {!chatsOpen && active !== 'project' && (
+          <Button
+            variant="ghost"
+            className="h-auto chip chats-chip"
+            aria-label="Open all chats"
+            aria-expanded={false}
+            onClick={() => setChatsOpen(true)}
+          >
+            <IconChat className="chip__icon" />
+            <span>All chats</span>
+          </Button>
+        )}
+        {chatsOpen && active !== 'project' && (
+          <aside className="chats">
+            <div className="chats__head">
+              <span className="chats__title">{active === 'codegenie' ? 'Sessions' : 'Chats'}</span>
+              <Button variant="ghost" className="h-auto chats__icon" aria-label="Filter chats">
+                <IconSliders />
+              </Button>
+              <Button variant="ghost" 
+                className="h-auto chats__icon"
+                aria-label="Close chats"
+                onClick={() => setChatsOpen(false)}
+              >
+                <IconClose />
+              </Button>
+            </div>
+
+            <div className="chats__search">
+              <IconSearch className="chats__search-icon" />
+              <Input
+                className="h-auto chats__search-input"
+                placeholder="Search chats or projects"
+                aria-label="Search chats or projects"
+                value={chatQuery}
+                onChange={(e) => setChatQuery(e.target.value)}
+              />
+            </div>
+
+            <div className="chats__scroll">
+              {filteredChats.length === 0 ? (
+                <div className="chats__empty">
+                  <IconChat className="chats__empty-icon" />
+                  <p>{chatQuery ? 'No chats found' : 'Your chats appear here'}</p>
+                </div>
+              ) : (
+                Object.entries(chatGroups).map(([group, items]) => (
+                  <div key={group} className="chats__group">
+                    <span className="chats__group-label">{group}</span>
+                    {items.map((c) => (
+                      <Button variant="ghost" 
+                        key={c.id}
+                        className={`h-auto chat-item${activeChatId === c.id ? ' is-active' : ''}`}
+                        onClick={() => openChat(c)}
+                      >
+                        <span className="chat-item__dot" style={{ background: c.dot }} />
+                        {c.fork && <IconFork className="chat-item__fork" />}
+                        <span className="chat-item__title">{c.title}</span>
+                      </Button>
+                    ))}
+                  </div>
+                ))
+              )}
+            </div>
+          </aside>
+        )}
         {active === 'designlab' ? (
           <DesignLab />
         ) : active === 'project' ? (
           <ProjectDetail />
+        ) : active.startsWith('ontology-') ? (
+          <section className="convo">
+            <div className="convo__inner">
+              <span className="codegenie-code__icon"><IconOntology /></span>
+              <h1 className="convo__title">{ONTOLOGY.find((o) => o.id === active)?.label}</h1>
+              <p className="convo__subtitle">This ontology view is coming soon.</p>
+            </div>
+          </section>
         ) : active === 'codegenie' && codeMode === 'code' ? (
           <section className="convo">
             <div className="convo__inner">
               <span className="codegenie-code__icon"><IconCode /></span>
-              <h1 className="convo__title">Code Workspace</h1>
+              <h1 className="convo__title">Code workspace</h1>
               <p className="convo__subtitle">Your CodeGenie build environment is coming soon.</p>
             </div>
           </section>
@@ -474,7 +718,16 @@ export default function Conversation() {
                         <div className="bubble">{renderPrompt(m.text)}</div>
                       </div>
                     ) : (
-                      <AssistantReply key={m.id} onOpenDoc={() => setPreviewOpen(true)} />
+                      <AssistantReply
+                        key={m.id}
+                        logo={BUILD_LOGO}
+                        sections={REPLY_SECTIONS}
+                        fresh={!!m.fresh}
+                        onDone={() => setRunning(false)}
+                        onTick={() => endRef.current?.scrollIntoView({ block: 'end' })}
+                        onOpenDoc={() => setPreviewOpen(true)}
+                        onFollowUp={(text) => setInput(text)}
+                      />
                     ),
                   )}
                   <div ref={endRef} />
@@ -484,19 +737,15 @@ export default function Conversation() {
             </>
           ) : (
             <div className="convo__inner">
-              <img
-                className="convo__logo"
-                src={active === 'codegenie' ? BUILD_LOGO : `${A}/kframe.svg`}
-                alt="KEOS"
-              />
+              <Logo3D className="convo__logo3d" size={84} theme={theme === 'dark' ? 'dark' : 'light'} />
               <h1 className="convo__title">
-                {active === 'codegenie' ? "Halfway there. Let's solve this, Aswini." : 'Welcome To Keos Conversation'}
+                {active === 'codegenie' ? "Halfway there. Let's solve this, Aswini." : greeting.title}
               </h1>
               <p className="convo__subtitle">
                 {active === 'codegenie' ? (
                   "Big goals take focus. Let's get to work."
                 ) : (
-                  <>Ask Anything Across Your Project's Knowledge — Or Type @<br />To Bring An Agent In.</>
+                  <>{greeting.lead}<br />{greeting.next}</>
                 )}
               </p>
               <div className="dock dock--hero">{composerBlock}</div>
@@ -507,39 +756,37 @@ export default function Conversation() {
         {previewOpen && (
           <aside className="preview">
             <div className="preview__head">
-              <span className="preview__title">Live Preview</span>
+              <span className="preview__title">Live preview</span>
               <div className="preview__tools">
-                <button className="preview__btn">
+                <Button variant="ghost" className="h-auto preview__btn">
                   <IconStar /> <span>Mark as Fav</span>
-                </button>
+                </Button>
                 <div className="preview__toggle">
-                  <button
-                    className={previewView === 'table' ? 'is-active' : ''}
+                  <Button variant="ghost" className={`h-auto ${previewView === 'table' ? 'is-active' : ''}`}
                     onClick={() => setPreviewView('table')}
                     aria-label="Table view"
                   >
                     <IconGrid />
-                  </button>
-                  <button
-                    className={previewView === 'chart' ? 'is-active' : ''}
+                  </Button>
+                  <Button variant="ghost" className={`h-auto ${previewView === 'chart' ? 'is-active' : ''}`}
                     onClick={() => setPreviewView('chart')}
                     aria-label="Chart view"
                   >
                     <IconBars />
-                  </button>
+                  </Button>
                 </div>
-                <button className="preview__btn">
+                <Button variant="ghost" className="h-auto preview__btn">
                   <IconDownload /> <span>Download</span>
-                </button>
-                <button className="preview__btn">
+                </Button>
+                <Button variant="ghost" className="h-auto preview__btn">
                   <IconShare /> <span>Share</span>
-                </button>
-                <button
-                  className="preview__btn preview__close"
+                </Button>
+                <Button variant="ghost" 
+                  className="h-auto preview__btn preview__close"
                   onClick={() => setPreviewOpen(false)}
                 >
                   Close
-                </button>
+                </Button>
               </div>
             </div>
 
@@ -548,7 +795,7 @@ export default function Conversation() {
                 <div className="stat">
                   <span className="stat__icon"><IconRecords /></span>
                   <div className="stat__text">
-                    <small>Total Records</small>
+                    <small>Total records</small>
                     <b>1200</b>
                   </div>
                 </div>
@@ -562,7 +809,7 @@ export default function Conversation() {
                 <div className="stat">
                   <span className="stat__icon"><IconClock /></span>
                   <div className="stat__text">
-                    <small>Last Updated</small>
+                    <small>Last updated</small>
                     <b>Now</b>
                   </div>
                 </div>
@@ -570,30 +817,30 @@ export default function Conversation() {
 
               {previewView === 'table' ? (
                 <div className="preview__table-wrap">
-                  <table className="ptable">
-                    <thead>
-                      <tr>
-                        <th>Projects <IconSort className="ptable__sort" /></th>
-                        <th>Status <IconSort className="ptable__sort" /></th>
-                        <th>Start Date <IconSort className="ptable__sort" /></th>
-                        <th>Units <IconSort className="ptable__sort" /></th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table className="ptable">
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Projects <IconSort className="ptable__sort" /></TableHead>
+                        <TableHead>Status <IconSort className="ptable__sort" /></TableHead>
+                        <TableHead>Start date <IconSort className="ptable__sort" /></TableHead>
+                        <TableHead>Units <IconSort className="ptable__sort" /></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {PREVIEW_ROWS.map((r) => (
-                        <tr key={r.name}>
-                          <td>{r.name}</td>
-                          <td>
+                        <TableRow key={r.name}>
+                          <TableCell>{r.name}</TableCell>
+                          <TableCell>
                             <span className={`pill pill--${statusClass(r.status)}`}>
                               {r.status} <IconChevron className="pill__chev" />
                             </span>
-                          </td>
-                          <td>{r.date}</td>
-                          <td>{r.units}</td>
-                        </tr>
+                          </TableCell>
+                          <TableCell>{r.date}</TableCell>
+                          <TableCell>{r.units}</TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 </div>
               ) : (
                 <div className="preview__chart">
@@ -613,81 +860,82 @@ export default function Conversation() {
         )}
         </>
         )}
+        {inboxOpen && (
+          <aside className="inbox inbox--side" aria-label="Inbox">
+            <div className="inbox__head">
+              <span className="inbox__heading">Updates</span>
+              <Button variant="ghost" className="h-auto inbox__close" aria-label="Close inbox" onClick={() => setInboxOpen(false)}>
+                <IconClose />
+              </Button>
+            </div>
+            <div className="inbox__tabs">
+              <SegmentedControl
+                label="Updates"
+                value={inboxTab}
+                onValueChange={(v) => setInboxTab(v as 'inbox' | 'new')}
+                options={[
+                  { value: 'inbox', label: 'Inbox' },
+                  { value: 'new', label: "What's new" },
+                ]}
+              />
+            </div>
+            <div className="inbox__list">
+              {(inboxTab === 'inbox' ? INBOX_ITEMS : NEWS_ITEMS).map((n) => (
+                <Button
+                  key={n.id}
+                  variant="ghost"
+                  className="h-auto inbox__item"
+                  onClick={() => setReadIds((r) => (r.includes(n.id) ? r : [...r, n.id]))}
+                >
+                  <span className="inbox__title">
+                    {!readIds.includes(n.id) && <span className="inbox__unread" aria-label="Unread" />}
+                    {n.title}
+                  </span>
+                  <span className="inbox__body">{n.body}</span>
+                  <span className="inbox__when">{n.when}</span>
+                </Button>
+              ))}
+            </div>
+          </aside>
+        )}
         </div>
       </main>
+
+      <SettingsDialog
+        open={settingsOpen}
+        onClose={() => setSettingsOpen(false)}
+        mascot={mascot}
+        onMascot={(id) => { setMascot(id); saveMascot(id) }}
+        showMascot={showMascot}
+        onShowMascot={(on) => { setShowMascot(on); saveShowMascot(on) }}
+      />
+      <Walkthrough open={tourOpen} steps={TOUR_STEPS} onClose={() => setTourOpen(false)} />
+
+      {toast && (
+        <div className="toast" role="status">
+          <span className="toast__icon"><IconPalette /></span>
+          <div className="toast__text">
+            <span>{toast.lead} <b>{toast.bold}</b></span>
+            <small>{toast.sub}</small>
+          </div>
+          <Button variant="ghost" className="h-auto toast__close" aria-label="Dismiss" onClick={() => setToast(null)}>
+            <IconClose />
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
 
 const REPLY_SECTIONS = [
-  'Executive Summary — Platform overview and MVP focus',
-  'Problem Statement — Pain points: manual data work, delayed decisions, complex existing tools',
-  'Solution Overview — No-code dashboard & report builder with pre-built connectors',
-  'Target Users — Business users (finance/ops/sales managers) and data analysts',
-  'Key Features — Data connectors (Salesforce, HubSpot, Stripe, databases), dashboard builder, automated reports, role-based sharing',
-  'Success Metrics — Time-to-first-dashboard, activation rate, NPS targets',
-  'Development Timeline — 12-week sprint roadmap (dashboard → connectors → reporting → polish)',
-  'Risks & Assumptions — Key bets and mitigation strategies',
-  'Out of Scope — What’s saved for post-MVP (SQL editing, AI insights, mobile, etc.)',
-  'Definition of Done — Launch criteria (5 connectors, accessibility, 100 beta testers, NPS ≥ 40)',
+  'Executive Summary: Platform overview and MVP focus',
+  'Problem Statement: Pain points: manual data work, delayed decisions, complex existing tools',
+  'Solution Overview: No-code dashboard & report builder with pre-built connectors',
+  'Target Users: Business users (finance/ops/sales managers) and data analysts',
+  'Key Features: Data connectors (Salesforce, HubSpot, Stripe, databases), dashboard builder, automated reports, role-based sharing',
+  'Success Metrics: Time-to-first-dashboard, activation rate, NPS targets',
+  'Development Timeline: 12-week sprint roadmap (dashboard → connectors → reporting → polish)',
+  'Risks & Assumptions: Key bets and mitigation strategies',
+  'Out of Scope: What’s saved for post-MVP (SQL editing, AI insights, mobile, etc.)',
+  'Definition of Done: Launch criteria (5 connectors, accessibility, 100 beta testers, NPS ≥ 40)',
 ]
-
-function AssistantReply({ onOpenDoc }: { onOpenDoc: () => void }) {
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="msg msg--assistant">
-      <img className="reply__avatar" src={`${A}/kframe.svg`} alt="" aria-hidden />
-      <div className="reply__body">
-        <button
-          className="reply__tools"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-        >
-          <span>Ran 3 commands, viewed a file, read a file</span>
-          <IconChevron className={`reply__tools-chev${open ? ' is-open' : ''}`} />
-        </button>
-        {open && (
-          <ul className="reply__steps">
-            <li>Read <code>brief/acme-mvp.md</code></li>
-            <li>Ran <code>analyze --scope mvp</code></li>
-            <li>Generated <code>prd/acme-mvp.md</code></li>
-          </ul>
-        )}
-
-        <p className="reply__p">
-          Done! I&rsquo;ve created a comprehensive PRD for Acme, an analytics and
-          reporting SaaS platform currently in MVP development.
-        </p>
-
-        <h2 className="reply__h">What&rsquo;s Included:</h2>
-        <p className="reply__note">
-          <span className="reply__square" aria-hidden />
-          10 sections covering:
-        </p>
-        <ol className="reply__list">
-          {REPLY_SECTIONS.map((s, i) => (
-            <li key={i}>{s}</li>
-          ))}
-        </ol>
-
-        <p className="reply__p">
-          The PRD is tailored to the analytics/reporting space with realistic
-          personas, feature prioritization, and a concrete implementation timeline.
-          Feel free to customize it for your specific use case, target markets, or
-          roadmap adjustments.
-        </p>
-
-        <div className="reply__doc">
-          <span className="reply__doc-thumb"><IconFile /></span>
-          <div className="reply__doc-info">
-            <b>Acme Prd</b>
-            <small>Document · DOCX</small>
-          </div>
-          <button className="reply__doc-btn" onClick={onOpenDoc}>
-            <IconDownload /> Download &amp; Open
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}

@@ -1,0 +1,40 @@
+/* Arc foundation tokens, mapped onto the KEOS semantic tokens so Arc components follow the app theme (compact scale). */
+:root {
+  --surface: var(--bg-elevated);
+  --surface-raised: var(--bg-elevated);
+  --surface-muted: var(--active);
+  --foreground: var(--text);
+  --text-secondary: var(--text-2);
+  --text-muted: var(--text-3);
+  --accent-strong: var(--text);
+  --border-subtle: var(--border);
+  --radius-control: 10px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --control-height-sm: 28px;
+  --control-height-md: 36px;
+  --control-height-lg: 44px;
+  --text-sm: 13px;
+  --leading-body: 1.4;
+  --duration-instant: 120ms;
+  --duration-fast: 160ms;
+  --duration-standard: 240ms;
+  --duration-spring: 580ms;
+  --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --shadow-resting: 0 1px 2px rgb(0 0 0 / 0.08);
+  --focus-outline: var(--text-3);
+  --focus-outline-offset: 2px;
+}
+:root[data-theme='dark'] {
+  --surface: rgb(255 255 255 / 0.14);
+  --surface-muted: rgb(255 255 255 / 0.07);
+  --shadow-resting: none;
+}
+@media (pointer: coarse) {
+  :root { --control-height-sm: 44px; }
+}

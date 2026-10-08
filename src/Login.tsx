@@ -26,10 +26,10 @@ export default function Login() {
 
           <div className="brand__content">
             <div className="brand__head">
-              <h1 className="brand__title">Your Enterprise AI Workspace</h1>
+              <h1 className="brand__title">Your enterprise AI workspace</h1>
               <p className="brand__desc">
                 Everything you need to search, collaborate, automate, and make
-                better decisions—securely connected in one place.
+                better decisions, securely connected in one place.
               </p>
             </div>
 
@@ -49,12 +49,12 @@ export default function Login() {
             </ul>
           </div>
 
-          <p className="brand__footer">Designed For Kaar tech people</p>
+          <p className="brand__footer">Designed for KaarTech people</p>
         </div>
 
         <div className="badge badge--tl">
           <img className="badge__corner" src={`${A}/corner.svg`} alt="" aria-hidden />
-          <img className="badge__k" src={`${A}/kframe.svg`} alt="KEOS" />
+          <img className="badge__k" src={`${A}/keos-build-mark.svg`} alt="KEOS" />
         </div>
         <div className="badge badge--br">
           <img className="badge__corner" src={`${A}/corner.svg`} alt="" aria-hidden />
@@ -139,7 +139,7 @@ export default function Login() {
                   </svg>
                 )}
               </span>
-              <span className="remember__label">Remember Me</span>
+              <span className="remember__label">Remember me</span>
             </button>
 
             <div className="auth__actions">

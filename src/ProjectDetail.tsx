@@ -1,10 +1,15 @@
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
+import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import './ProjectDetail.css'
 import {
   IconChat, IconSettings, IconExternal,
   IconExpand, IconPlus, IconMinus, IconRefresh, IconSearch, IconClose,
-  IconFile, IconBook, IconServer, IconGavel, IconCalendar,
+  IconFile, IconBook, IconServer, IconGavel, IconCalendar, IconList, IconOntology,
 } from './icons'
 
 const A = '/assets'
@@ -49,6 +54,8 @@ type CatMeta = {
   edgeLabel: string
 }
 
+const catVars = (c: CatMeta) => ({ '--cat': c.color, '--cat-soft': c.soft }) as CSSProperties
+
 const CATS: Record<Kind, CatMeta> = {
   fact: { label: 'Fact', color: '#d98a3d', soft: '#fbeee0', Icon: IconFile, count: 35, edgeLabel: 'current state' },
   instruction: { label: 'Instruction', color: '#3aa86b', soft: '#e5f6ec', Icon: IconBook, count: 5, edgeLabel: 'guides' },
@@ -90,7 +97,7 @@ const TABS: { id: string; label: string; count?: number }[] = [
   { id: 'agents', label: 'Agents', count: 5 },
   { id: 'skills', label: 'Skills', count: 4 },
   { id: 'connectors', label: 'Connectors', count: 6 },
-  { id: 'kb', label: 'Knowledge Base', count: 6 },
+  { id: 'kb', label: 'Knowledge base', count: 6 },
   { id: 'threads', label: 'Threads', count: 4 },
   { id: 'memory', label: 'Memory', count: 4 },
 ]
@@ -130,32 +137,30 @@ export default function ProjectDetail() {
           <span className="pd__updated">Updated 16 days ago</span>
           <div className="pd__header-right">
             <div className="pd__avatars">
-              <span className="pd__avatar" style={{ background: '#a9203e' }}>R</span>
+              <span className="pd__avatar" style={{ background: 'var(--accent-solid)' }}>R</span>
               <span className="pd__avatar" style={{ background: '#3f7fd9' }}>S</span>
               <span className="pd__avatar" style={{ background: '#3aa86b' }}>K</span>
               <span className="pd__avatar-more">+120</span>
             </div>
-            <button className="pd__btn"><IconChat /> Chat</button>
-            <button className="pd__btn pd__btn--accent"><IconSettings /> Configure Project</button>
+            <Button variant="ghost" className="h-auto pd__btn"><IconChat /> Chat</Button>
+            <Button variant="ghost" className="h-auto pd__btn pd__btn--accent"><IconSettings /> Configure Project</Button>
           </div>
         </div>
         <p className="pd__subtitle">
-          Planning and execution of the CDU-1/FCC turnaround at Ras Tanura Refinery — scope
+          Planning and execution of the CDU-1/FCC turnaround at Ras Tanura Refinery: scope
           freeze, work orders, permits, and inspection findings tracked in one place.
         </p>
 
-        <nav className="pd__tabs">
-          {TABS.map((t) => (
-            <button
-              key={t.id}
-              className={`pd__tab${tab === t.id ? ' is-active' : ''}`}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-              {t.count != null && <span className="pd__tab-count">{t.count}</span>}
-            </button>
-          ))}
-        </nav>
+        <Tabs value={tab} onValueChange={setTab} className="pd__tabs">
+          <TabsList aria-label="Project sections">
+            {TABS.map((t) => (
+              <TabsTrigger key={t.id} value={t.id}>
+                {t.label}
+                {t.count != null && <span className="pd__tab-count">{t.count}</span>}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </header>
 
       <div className="pd__body">
@@ -172,32 +177,32 @@ export default function ProjectDetail() {
               </div>
               <div className="pd__mem-actions">
                 <div className="pd__seg">
-                  <button className={memView === 'list' ? 'is-active' : ''} onClick={() => setMemView('list')}>
-                    List view
-                  </button>
-                  <button className={memView === 'graph' ? 'is-active' : ''} onClick={() => setMemView('graph')}>
-                    Graph view
-                  </button>
+                  <Button variant="ghost" aria-label="List view" title="List view" className={`h-auto ${memView === 'list' ? 'is-active' : ''}`} onClick={() => setMemView('list')}>
+                    <IconList />
+                  </Button>
+                  <Button variant="ghost" aria-label="Graph view" title="Graph view" className={`h-auto ${memView === 'graph' ? 'is-active' : ''}`} onClick={() => setMemView('graph')}>
+                    <IconOntology />
+                  </Button>
                 </div>
-                <button className="pd__btn pd__btn--accent pd__btn--solid">
+                <Button variant="ghost" className="h-auto pd__btn pd__btn--accent pd__btn--solid">
                   <IconExternal /> Export To Projects
-                </button>
+                </Button>
               </div>
             </div>
 
             <div className="pd__filters">
-              <button className={`mem-filter${filter === 'all' ? ' is-active' : ''}`} onClick={() => setFilter('all')}>
+              <Button variant="ghost" className={`h-auto mem-filter${filter === 'all' ? ' is-active' : ''}`} onClick={() => setFilter('all')}>
                 All <b>({total})</b>
-              </button>
+              </Button>
               {(Object.keys(CATS) as Kind[]).map((k) => (
-                <button
+                <Button variant="ghost" 
                   key={k}
-                  className={`mem-filter${filter === k ? ' is-active' : ''}`}
+                  className={`h-auto mem-filter${filter === k ? ' is-active' : ''}`}
                   onClick={() => setFilter(k)}
                 >
                   <span className="mem-filter__dot" style={{ background: CATS[k].color }} />
                   {CATS[k].label} <b>({CATS[k].count})</b>
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -206,48 +211,52 @@ export default function ProjectDetail() {
                 <div className="pd__list-toolbar">
                   <div className="pd__search">
                     <IconSearch />
-                    <input
-                      placeholder="Search memories…"
+                    <Input
+                      className="h-auto"
+                      placeholder="Search memories"
+                      aria-label="Search memories"
                       value={query}
                       onChange={(e) => setQuery(e.target.value)}
                     />
                   </div>
                 </div>
-                <table className="mem-table">
-                  <thead>
-                    <tr><th>Type</th><th>Title</th><th>Description</th></tr>
-                  </thead>
-                  <tbody>
+                <Table className="mem-table">
+                  <TableHeader>
+                    <TableRow><TableHead>Type</TableHead><TableHead>Title</TableHead><TableHead>Description</TableHead></TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {listRows.length === 0 ? (
-                      <tr><td colSpan={3} className="mem-table__empty">No memories match your filters.</td></tr>
+                      <TableRow><TableCell colSpan={3} className="mem-table__empty">No memories match your filters.</TableCell></TableRow>
                     ) : (
                       listRows.map((it) => (
-                        <tr key={it.kind} onClick={() => setSelected(it.kind)}>
-                          <td>
-                            <span className="mem-tag" style={{ color: CATS[it.kind].color, background: CATS[it.kind].soft }}>
+                        <TableRow key={it.kind} onClick={() => setSelected(it.kind)}>
+                          <TableCell>
+                            <span className="mem-tag cat-chip" style={catVars(CATS[it.kind])}>
                               {CATS[it.kind].label}
                             </span>
-                          </td>
-                          <td className="mem-table__title">{it.title}</td>
-                          <td className="mem-table__body">{it.body}</td>
-                        </tr>
+                          </TableCell>
+                          <TableCell className="mem-table__title">{it.title}</TableCell>
+                          <TableCell className="mem-table__body">{it.body}</TableCell>
+                        </TableRow>
                       ))
                     )}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             ) : (
               <div className="pd__graph-row">
                 <div className="pd__graph-card">
                   <div className="pd__graph-toolbar">
-                    <button aria-label="Expand" onClick={() => setZoom(1)}><IconExpand /></button>
-                    <button aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(1.4, z + 0.1))}><IconPlus /></button>
-                    <button aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))}><IconMinus /></button>
-                    <button aria-label="Reset" onClick={() => { setZoom(1); setSelected('core'); setQuery('') }}><IconRefresh /></button>
+                    <Button variant="ghost" className="h-auto" aria-label="Expand" onClick={() => setZoom(1)}><IconExpand /></Button>
+                    <Button variant="ghost" className="h-auto" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(1.4, z + 0.1))}><IconPlus /></Button>
+                    <Button variant="ghost" className="h-auto" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))}><IconMinus /></Button>
+                    <Button variant="ghost" className="h-auto" aria-label="Reset" onClick={() => { setZoom(1); setSelected('core'); setQuery('') }}><IconRefresh /></Button>
                     <div className="pd__search pd__search--toolbar">
                       <IconSearch />
-                      <input
-                        placeholder="Search memories…"
+                      <Input
+                        className="h-auto"
+                        placeholder="Search memories"
+                      aria-label="Search memories"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                       />
@@ -255,15 +264,22 @@ export default function ProjectDetail() {
                   </div>
 
                   <div className="pd__graph-pages">
-                    <button className={graphPage === 1 ? 'is-active' : ''} onClick={() => setGraphPage(1)}>Classic</button>
-                    <button className={graphPage === 2 ? 'is-active' : ''} onClick={() => setGraphPage(2)}>Minimal</button>
-                    <button className={graphPage === 3 ? 'is-active' : ''} onClick={() => setGraphPage(3)}>Neon</button>
+                    <SegmentedControl
+                      label="Graph style"
+                      value={String(graphPage)}
+                      onValueChange={(v) => setGraphPage(Number(v) as 1 | 2 | 3)}
+                      options={[
+                        { value: '1', label: 'Classic' },
+                        { value: '2', label: 'Minimal' },
+                        { value: '3', label: 'Neon' },
+                      ]}
+                    />
                   </div>
 
                   {tipOpen && (
                     <div className="brain-tip">
-                      <span><b>Tip —</b> Drag the brain to rotate · Scroll to zoom · Click a dot to learn more</span>
-                      <button aria-label="Dismiss tip" onClick={() => setTipOpen(false)}><IconClose /></button>
+                      <span><b>Tip:</b> Drag the brain to rotate · Scroll to zoom · Click a dot to learn more</span>
+                      <Button variant="ghost" className="h-auto" aria-label="Dismiss tip" onClick={() => setTipOpen(false)}><IconClose /></Button>
                     </div>
                   )}
 
@@ -336,9 +352,9 @@ export default function ProjectDetail() {
                         const [x, y] = POS[k]
                         const shown = revealedKind === k
                         return (
-                          <button
+                          <Button variant="ghost" 
                             key={k}
-                            className={`mem-node${selected === k ? ' is-selected' : ''} mem-cat-node${shown ? ' is-shown' : ' is-hidden'}${graphPage === 3 ? ' mem-node--neon' : ''}`}
+                            className={`h-auto mem-node${selected === k ? ' is-selected' : ''} mem-cat-node${shown ? ' is-shown' : ' is-hidden'}${graphPage === 3 ? ' mem-node--neon' : ''}`}
                             style={{
                               left: `${x / 10}%`,
                               top: `${(y / 620) * 100}%`,
@@ -349,17 +365,17 @@ export default function ProjectDetail() {
                             onClick={() => setSelected(k)}
                           >
                             <span
-                              className="mem-node__icon"
+                              className={`mem-node__icon${graphPage === 3 ? '' : ' cat-chip'}`}
                               style={
                                 graphPage === 3
                                   ? { background: 'var(--bg-elevated)', color: cat.color, borderColor: cat.color }
-                                  : { background: cat.soft, color: cat.color, borderColor: cat.color }
+                                  : { ...catVars(cat), borderColor: cat.color }
                               }
                             >
                               <cat.Icon />
                             </span>
                             <span className="mem-node__label">{cat.label}<br />{cat.count}</span>
-                          </button>
+                          </Button>
                         )
                       })}
 
@@ -370,9 +386,9 @@ export default function ProjectDetail() {
                         const cardOffset = CARD_OFFSET[k]
                         const shown = revealedKind === k
                         return (
-                          <button
+                          <Button variant="ghost" 
                             key={`card-${k}`}
-                            className={`mem-card${shown ? ' is-shown' : ' is-hidden'}${graphPage === 3 ? ' mem-card--neon' : ''}`}
+                            className={`h-auto mem-card${shown ? ' is-shown' : ' is-hidden'}${graphPage === 3 ? ' mem-card--neon' : ''}`}
                             style={{
                               left: `${(x + cardOffset[0]) / 10}%`,
                               top: `${((y + cardOffset[1]) / 620) * 100}%`,
@@ -382,12 +398,12 @@ export default function ProjectDetail() {
                             }}
                             onClick={() => setSelected(k)}
                           >
-                            <span className="mem-card__tag" style={{ color: cat.color }}>
+                            <span className="mem-card__tag cat-text" style={catVars(cat)}>
                               <span className="mem-card__dot" style={{ background: cat.color }} /> {cat.label.toUpperCase()}
                             </span>
                             <b>{item.title}</b>
                             <small>{item.body}</small>
-                          </button>
+                          </Button>
                         )
                       })}
                     </div>
@@ -533,9 +549,9 @@ function BrainCore({
           {(Object.keys(CATS) as Kind[]).map((k) => {
             const [x, y] = BRAIN_DOTS[k]
             return (
-              <button
+              <Button variant="ghost" 
                 key={k}
-                className={`brain-dot${selected === k ? ' is-selected' : ''}${variant === 'plain' ? ' brain-dot--plain' : ''}`}
+                className={`h-auto brain-dot${selected === k ? ' is-selected' : ''}${variant === 'plain' ? ' brain-dot--plain' : ''}`}
                 style={{ left: `${x}%`, top: `${y}%`, background: CATS[k].color, color: CATS[k].color }}
                 onClick={(e) => { e.stopPropagation(); onSelectDot(k) }}
                 onPointerDown={(e) => e.stopPropagation()}
@@ -559,7 +575,7 @@ function BrainCore({
                   transform: `translate(-50%, calc(-100% - 14px)) rotateY(${-rot.y}deg) rotateX(${-rot.x}deg)`,
                 }}
               >
-                <span className="brain-dot-tip__tag" style={{ color: cat.color, background: cat.soft }}>
+                <span className="brain-dot-tip__tag cat-chip" style={catVars(cat)}>
                   {cat.label.toUpperCase()}
                 </span>
                 <b>{item.title}</b>
@@ -570,9 +586,9 @@ function BrainCore({
         </div>
       </div>
       {variant !== 'plain' && (
-        <button className="mem-node__label mem-node__label--btn" onClick={onSelectCore}>
+        <Button variant="ghost" className="h-auto mem-node__label mem-node__label--btn" onClick={onSelectCore}>
           CORE CONTEXT
-        </button>
+        </Button>
       )}
     </div>
   )
@@ -596,21 +612,21 @@ function DetailPanel({ selected, onSelect }: { selected: Selected; onSelect: (s:
           instructions extracted from agent conversations.
         </p>
         <div className="pd__detail-section">
-          <span className="pd__detail-label">Connected Insights</span>
+          <span className="pd__detail-label">Connected insights</span>
           {(Object.keys(CATS) as Kind[]).map((k) => (
-            <button key={k} className="pd__detail-row" onClick={() => onSelect(k)}>
+            <Button variant="ghost" key={k} className="h-auto pd__detail-row" onClick={() => onSelect(k)}>
               <span><span className="mem-filter__dot" style={{ background: CATS[k].color }} /> {CATS[k].label}</span>
               <span className="pd__detail-count">{CATS[k].count}</span>
-            </button>
+            </Button>
           ))}
         </div>
         <div className="pd__detail-section">
-          <span className="pd__detail-label">Top Connections</span>
+          <span className="pd__detail-label">Top connections</span>
           {(Object.keys(CATS) as Kind[]).slice(0, 3).map((k) => (
-            <button key={k} className="pd__detail-row" onClick={() => onSelect(k)}>
+            <Button variant="ghost" key={k} className="h-auto pd__detail-row" onClick={() => onSelect(k)}>
               <span><span className="mem-filter__dot" style={{ background: CATS[k].color }} /> {itemOf(k).title}</span>
               <span className="pd__detail-rel">{CATS[k].edgeLabel}</span>
-            </button>
+            </Button>
           ))}
         </div>
       </aside>
@@ -622,23 +638,23 @@ function DetailPanel({ selected, onSelect }: { selected: Selected; onSelect: (s:
   return (
     <aside className="pd__detail">
       <div className="pd__detail-head">
-        <span className="pd__detail-icon" style={{ background: cat.soft, color: cat.color }}>
+        <span className="pd__detail-icon cat-chip" style={catVars(cat)}>
           <cat.Icon />
         </span>
         <div>
           <b>{item.title}</b>
-          <span className="pd__detail-tag" style={{ color: cat.color, background: cat.soft }}>
+          <span className="pd__detail-tag cat-chip" style={catVars(cat)}>
             {cat.label.toUpperCase()}
           </span>
         </div>
       </div>
       <p className="pd__detail-desc">{item.body}</p>
       <div className="pd__detail-section">
-        <span className="pd__detail-label">Connected To</span>
-        <button className="pd__detail-row" onClick={() => onSelect('core')}>
-          <span><span className="mem-filter__dot" style={{ background: '#a9203e' }} /> Core Context</span>
+        <span className="pd__detail-label">Connected to</span>
+        <Button variant="ghost" className="h-auto pd__detail-row" onClick={() => onSelect('core')}>
+          <span><span className="mem-filter__dot" style={{ background: 'var(--accent-solid)' }} /> Core Context</span>
           <span className="pd__detail-rel">{cat.edgeLabel}</span>
-        </button>
+        </Button>
       </div>
     </aside>
   )

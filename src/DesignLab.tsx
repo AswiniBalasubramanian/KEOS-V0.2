@@ -30,6 +30,14 @@ function mix(hex: string, target: [number, number, number], amt: number): string
 }
 const tint = (hex: string, amt: number) => mix(hex, [255, 255, 255], amt)
 const shade = (hex: string, amt: number) => mix(hex, [0, 0, 0], amt)
+function readableOn(hex: string): string {
+  const [r, g, b] = hexToRgb(hex).map((v) => {
+    const x = v / 255
+    return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4)
+  })
+  const L = 0.2126 * r + 0.7152 * g + 0.0722 * b
+  return 1.05 / (L + 0.05) >= (L + 0.05) / 0.0535 ? '#ffffff' : '#0b0b0c'
+}
 function saturationOf(hex: string): number {
   const [r, g, b] = hexToRgb(hex).map((v) => v / 255)
   const max = Math.max(r, g, b), min = Math.min(r, g, b)
@@ -61,14 +69,14 @@ const DS_PRESETS: DsPreset[] = [
   {
     id: 'keos',
     name: 'KEOS Default',
-    blurb: "This app's own system — nothing overridden",
-    font: "'DM Sans', system-ui, -apple-system, sans-serif",
-    colors: { primary: '#a9203e', accent: '#a9203e', neutral: '#8b95a5', secondary: '#ee4961' },
+    blurb: "This app's own system: nothing overridden",
+    font: "'Figtree Variable', ui-sans-serif, system-ui, -apple-system, sans-serif",
+    colors: { primary: '#771e2c', accent: '#771e2c', neutral: '#85817a', secondary: '#d9304a' },
   },
   {
     id: 'material3',
     name: 'Material 3',
-    blurb: 'Google Material You — tonal purple, Roboto',
+    blurb: 'Google Material You: tonal purple, Roboto',
     font: "'Roboto', system-ui, sans-serif",
     googleFont: 'Roboto:wght@400;500;600;700',
     colors: { primary: '#6750a4', accent: '#7d5260', neutral: '#79747e', secondary: '#625b71' },
@@ -127,6 +135,7 @@ function buildVars(c: DsColors): Record<string, string> {
     '--bg-elevated': '#ffffff',
     '--bg': tint(c.neutral, 50),
     '--ds-secondary': c.secondary,
+    '--ds-secondary-fg': readableOn(c.secondary),
   }
 }
 
@@ -221,7 +230,7 @@ export default function DesignLab() {
     try {
       const found = await extractPalette(file)
       if (found.length === 0) {
-        setExtractError('No usable colors found in that image — try another.')
+        setExtractError('No usable colors found in that image. Try another.')
       } else {
         setSwatches(found)
         setColors(autoAssign(found))
@@ -287,12 +296,12 @@ export default function DesignLab() {
       <div className="dl__panel">
         <p className="dl__notice">
           <strong>Sandbox only.</strong> Everything you change here previews on
-          the mock screen to the right. It never touches the live KEOS app —
-          semantic colors (success / warning / danger) also stay fixed.
+          the mock screen to the right. It never touches the live KEOS app.
+          Semantic colors (success, warning, danger) also stay fixed.
         </p>
 
         <div className="dl__section">
-          <span className="dl__section-title">Design System</span>
+          <span className="dl__section-title">Design system</span>
           <div className="dl__presets">
             {DS_PRESETS.map((p) => (
               <button
@@ -370,7 +379,7 @@ export default function DesignLab() {
             }}
           >
             {DS_PRESETS.map((p) => (
-              <option key={p.id} value={p.font}>{p.name} — {p.font.split(',')[0].replace(/['"]/g, '')}</option>
+              <option key={p.id} value={p.font}>{p.name}, {p.font.split(',')[0].replace(/['"]/g, '')}</option>
             ))}
           </select>
         </div>
@@ -406,7 +415,7 @@ export default function DesignLab() {
         </div>
 
         <div className="dl__section">
-          <span className="dl__section-title">Extract From Screen</span>
+          <span className="dl__section-title">Extract from screen</span>
           <label className="dl__drop">
             <IconImage />
             <span>{extracting ? 'Reading image…' : 'Click to attach a screenshot'}</span>
@@ -434,7 +443,7 @@ export default function DesignLab() {
       <div className="dl__stage">
         <div className="dl__stage-inner">
           <div className="dl__stage-label">
-            <b>Live Preview</b>
+            <b>Live preview</b>
             <span>{activePreset ? activePreset.name : 'Custom'}</span>
           </div>
 
@@ -442,11 +451,11 @@ export default function DesignLab() {
             <div className="dl-sandbox__row">
               <button className="nav__item nav__item--primary is-active">
                 <IconNewChat className="nav__icon" />
-                <span className="nav__label">New Chat</span>
+                <span className="nav__label">New chat</span>
               </button>
               <button className="nav__item">
                 <IconAgent className="nav__icon" />
-                <span className="nav__label">Agent Store</span>
+                <span className="nav__label">Agent store</span>
               </button>
             </div>
 
@@ -455,7 +464,7 @@ export default function DesignLab() {
             </div>
 
             <div className="msg msg--assistant">
-              <img className="reply__avatar" src={`${A}/kframe.svg`} alt="" aria-hidden />
+              <img className="reply__avatar" src={`${A}/keos-build-mark.svg`} alt="" aria-hidden />
               <div className="reply__body">
                 <button className="reply__tools">
                   <span>Ran 3 commands, viewed a file</span>
@@ -486,7 +495,7 @@ export default function DesignLab() {
             <div className="reply__doc">
               <span className="reply__doc-thumb"><IconFile /></span>
               <div className="reply__doc-info">
-                <b>Sample Doc</b>
+                <b>Sample doc</b>
                 <small>Document · DOCX</small>
               </div>
               <button className="reply__doc-btn">
@@ -496,7 +505,7 @@ export default function DesignLab() {
 
             <div className="composer">
               <div className="composer__input" style={{ color: 'var(--text-4)' }}>
-                Message KEOS — use @ to mention an agent…
+                Message KEOS. Use @ to mention an agent…
               </div>
               <div className="composer__actions">
                 <button className="composer__smart">
@@ -512,10 +521,10 @@ export default function DesignLab() {
             <span className="dl-secondary-badge">Secondary</span>
 
             <div className="dl-semantic">
-              <span className="dl-semantic__label">Semantic — always fixed</span>
+              <span className="dl-semantic__label">Semantic: always fixed</span>
               <div className="dl-semantic__pills">
                 <span className="pill pill--open">Open</span>
-                <span className="pill pill--progress">In Progress</span>
+                <span className="pill pill--progress">In progress</span>
                 <span className="pill pill--completed">Completed</span>
               </div>
             </div>
