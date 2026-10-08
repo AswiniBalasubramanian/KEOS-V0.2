@@ -992,3 +992,6 @@
   }
   .bubble { max-width: 90%; }
 }
+.crumbs__link { padding: 0; border: 0; background: transparent; font: inherit; color: var(--text-3); cursor: pointer; }
+.crumbs__link:hover { color: var(--text); }
+.crumbs { gap: 8px; }

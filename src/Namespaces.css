@@ -1,0 +1,167 @@
+/* ---- Namespaces: list and create form, in the KEOS compact style ---- */
+:root .ns { flex: 1; min-width: 0; overflow: auto; padding: 24px 32px 40px; }
+:root .ns--form { max-width: 720px; }
+:root .ns__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+:root .ns__title { font-size: 22px; font-weight: 500; color: var(--text); letter-spacing: -0.01em; }
+:root .ns__count { font-weight: 400; color: var(--text-3); }
+:root .ns__sub { margin-top: 4px; max-width: 62ch; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+:root .ns__toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+:root .ns__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+}
+:root .ns__btn:hover:not(:disabled) { background: var(--hover); }
+:root .ns__btn:disabled { color: var(--text-4); background: transparent; border-color: var(--border); cursor: not-allowed; opacity: 1; }
+:root .ns__btn svg { width: 16px; height: 16px; }
+:root .ns__btn--primary { border-color: transparent; background: var(--accent-solid); color: var(--on-accent); }
+:root .ns__btn--primary:hover:not(:disabled) { background: var(--accent-solid-hover); }
+:root .ns__btn--primary:disabled { background: var(--active); color: var(--text-4); border-color: transparent; }
+:root .is-spinning { animation: nsSpin 700ms linear infinite; }
+@keyframes nsSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { :root .is-spinning { animation: none; } }
+
+:root .ns__menu { position: relative; }
+:root .ns__pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 170px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  box-shadow: 0 12px 28px -12px rgb(0 0 0 / 0.25);
+}
+:root .ns__pop-item { display: block; width: 100%; padding: 7px 10px; border: 0; border-radius: 6px; background: transparent; font-size: 13px; text-align: left; color: var(--text); cursor: pointer; }
+:root .ns__pop-item:hover { background: var(--hover); }
+
+:root .ns__filters { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 16px 0 12px; }
+:root .ns__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 280px;
+  max-width: 100%;
+  padding: 0 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  color: var(--text-3);
+}
+:root .ns__search:focus-within { border-color: var(--text-4); }
+:root .ns__search svg { flex-shrink: 0; width: 16px; height: 16px; }
+:root .ns__search input { flex: 1; min-width: 0; padding: 7px 0; border: 0; background: transparent; font-size: 13px; color: var(--text); outline: none; box-shadow: none; }
+:root .ns__select select {
+  padding: 7px 28px 7px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  cursor: pointer;
+}
+:root .ns__note { flex: 1; min-width: 0; margin: 0 0 0 4px; font-size: 12px; color: var(--text-3); }
+
+:root .ns__tablewrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); }
+:root .ns__table { width: 100%; border-collapse: collapse; font-size: 13px; }
+:root .ns__table th, :root .ns__table td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+:root .ns__table tbody tr:last-child td { border-bottom: 0; }
+:root .ns__table th { font-weight: 500; color: var(--text-3); background: var(--bg); }
+:root .ns__table tbody tr:hover { background: var(--hover); }
+:root .ns__table tbody tr.is-picked { background: var(--active); }
+:root .ns__check { width: 40px; padding-right: 0; }
+:root .ns__check input { width: 15px; height: 15px; accent-color: var(--accent-solid); cursor: pointer; }
+:root .ns__num { font-variant-numeric: tabular-nums; color: var(--text-2); }
+:root .ns__sort { display: inline-flex; align-items: center; gap: 4px; padding: 0; border: 0; background: transparent; font: inherit; font-weight: 500; color: inherit; cursor: pointer; }
+:root .ns__sort:hover { color: var(--text); }
+:root .ns__sort-icon { width: 14px; height: 14px; opacity: 0.5; }
+:root .ns__sort-icon.is-on { opacity: 1; color: var(--text); }
+:root .ns__name { padding: 0; border: 0; background: transparent; font: inherit; font-weight: 500; color: var(--text); text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 3px; cursor: pointer; }
+:root .ns__name:hover { text-decoration-color: var(--text); }
+:root .ns__status { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; }
+:root .ns__status svg { width: 14px; height: 14px; }
+:root .ns__status--active { color: var(--ok-text, var(--text)); }
+:root .ns__status--inactive { color: var(--text-3); }
+:root .ns__empty { padding: 28px 14px; text-align: center; color: var(--text-3); }
+
+/* Create form */
+:root .ns__card { margin-top: 20px; padding: 20px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); }
+:root .ns__card-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+:root .ns__field { margin-bottom: 16px; }
+:root .ns__label { display: block; font-size: 13px; font-weight: 500; color: var(--text); }
+:root .ns__label em { margin-left: 4px; font-style: normal; font-weight: 400; color: var(--text-4); }
+:root .ns__hint { margin: 2px 0 6px; font-size: 12px; color: var(--text-3); }
+:root .ns__hint code { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: var(--text-2); }
+:root .ns__input, :root .ns__textarea {
+  display: block;
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  box-shadow: none;
+}
+:root .ns__input:focus, :root .ns__textarea:focus { border-color: var(--text-4); outline: none; box-shadow: none; }
+:root .ns__input[aria-invalid='true'] { border-color: var(--danger, #d92d20); }
+:root .ns__error { margin-top: 6px; font-size: 12px; color: var(--danger, #d92d20); }
+:root .ns__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 8px; }
+:root .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+@media (max-width: 640px) { :root .ns { padding: 16px; } :root .ns__note { width: 100%; flex-basis: 100%; order: 3; margin: 0; } :root .ns__search { width: 100%; } }
+
+/* Actions sit at the top right, level with the title */
+:root .ns__head { flex-wrap: nowrap; }
+:root .ns__head > div:first-child { flex: 1; min-width: 0; }
+:root .ns__toolbar { flex-shrink: 0; flex-wrap: nowrap; }
+@media (max-width: 760px) {
+  :root .ns__head { flex-wrap: wrap; }
+  :root .ns__toolbar { flex-wrap: wrap; }
+}
+
+/* Status as a badge chip */
+:root .ns__status { padding: 2px 10px 2px 8px; border-radius: 999px; line-height: 1.5; }
+:root .ns__status--active { background: var(--ok-bg, rgb(21 128 61 / 0.12)); color: var(--ok-text, var(--text)); }
+:root .ns__status--inactive { background: var(--active); color: var(--text-2); }
+
+/* Create dialog */
+:root .ns__dialog { width: min(480px, calc(100vw - 32px)); }
+:root .ns__dialog .ns__sub { margin: 0 0 16px; }
+:root .ns__dialog .ns__actions { margin-top: 4px; }
+
+/* Detail page */
+:root .ns__back { display: inline-flex; align-items: center; gap: 6px; margin: 0 0 12px; padding: 0; border: 0; background: transparent; font-size: 13px; color: var(--text-3); cursor: pointer; }
+:root .ns__back:hover { color: var(--text); }
+:root .ns__back svg { width: 16px; height: 16px; }
+:root .ns__note--solo { flex: none; min-height: 18px; margin: 6px 0 0; }
+:root .ns__summary { margin-top: 8px; }
+:root .ns__grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px 24px; margin: 0; }
+:root .ns__grid dt { font-size: 12px; font-weight: 500; color: var(--text-3); }
+:root .ns__grid dt label { font: inherit; color: inherit; }
+:root .ns__grid dd { margin: 4px 0 0; font-size: 13px; color: var(--text); overflow-wrap: anywhere; }
+:root .ns__tabs { margin-top: 20px; }
+:root .ns__panel { margin-top: 12px; }
+:root .ns__tablewrap--flat { border: 0; border-radius: 0; background: transparent; }
+:root .ns__tablewrap--flat th { background: transparent; }
+:root .ns__tablewrap--flat th:first-child, :root .ns__tablewrap--flat td:first-child { padding-left: 0; }
+:root .ns__tablewrap--flat tbody tr:hover { background: transparent; }
+
+:root .ns__tablewrap--flat .ns__name { cursor: default; text-decoration: none; }
+:root .ns__status--bad { background: var(--danger-bg, rgb(217 45 32 / 0.1)); color: var(--danger, #d92d20); }
+:root .ns__status--info { background: var(--active); color: var(--text-2); }
+:root .ns__empty-block p { margin: 0; color: var(--text-3); }
+:root .ns__grid--metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 760px) { :root .ns__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 480px) { :root .ns__grid { grid-template-columns: 1fr; } }

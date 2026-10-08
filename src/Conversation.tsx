@@ -16,6 +16,7 @@ import FloatingMascot from './FloatingMascot'
 import FeedbackMenu from './FeedbackMenu'
 import NewBadge from './NewBadge'
 import Tip from './Tip'
+import Namespaces from './Namespaces'
 import Logo3D from './Logo3D'
 import ProfileMenu from './ProfileMenu'
 import SettingsDialog from './SettingsDialog'
@@ -165,6 +166,8 @@ export default function Conversation() {
   const firstUnread = INBOX_ITEMS.find((n) => !readIds.includes(n.id))
   const unreadInbox = INBOX_ITEMS.filter((n) => !readIds.includes(n.id)).length
   const [active, setActive] = useState('newchat')
+  const [nsDetail, setNsDetail] = useState<{ id: string; name: string } | null>(null)
+  useEffect(() => { if (active !== 'ontology-namespaces') setNsDetail(null) }, [active])
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
   useEffect(() => {
@@ -603,13 +606,21 @@ export default function Conversation() {
       <main className="main">
         <header className="topbar">
           <nav className="crumbs">
-            <span className={`crumbs__current${active === 'codegenie' ? ' crumbs__current--accent' : ''}`}>
-              {active === 'project'
-                ? 'All projects'
-                : active === 'codegenie'
-                  ? 'CodeGenie'
-                  : ONTOLOGY.find((o) => o.id === active)?.label ?? 'Chats'}
-            </span>
+            {active === 'ontology-namespaces' && nsDetail ? (
+              <>
+                <button type="button" className="crumbs__link" onClick={() => setNsDetail(null)}>Namespaces</button>
+                <span className="crumbs__sep" aria-hidden="true">›</span>
+                <span className="crumbs__current" aria-current="page">{nsDetail.name}</span>
+              </>
+            ) : (
+              <span className={`crumbs__current${active === 'codegenie' ? ' crumbs__current--accent' : ''}`}>
+                {active === 'project'
+                  ? 'All projects'
+                  : active === 'codegenie'
+                    ? 'CodeGenie'
+                    : ONTOLOGY.find((o) => o.id === active)?.label ?? 'Chats'}
+              </span>
+            )}
           </nav>
           <div className="topbar__actions">
             <Tip label="Search" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Search"><IconSearch /></Button></Tip>
@@ -635,7 +646,7 @@ export default function Conversation() {
         </header>
 
         <div className="main__split">
-        {!chatsOpen && active !== 'project' && (
+        {!chatsOpen && active !== 'project' && !active.startsWith('ontology-') && (
           <Button
             variant="ghost"
             className="h-auto chip chats-chip"
@@ -705,6 +716,8 @@ export default function Conversation() {
           <DesignLab />
         ) : active === 'project' ? (
           <ProjectDetail />
+        ) : active === 'ontology-namespaces' ? (
+          <Namespaces detail={nsDetail} onDetail={setNsDetail} />
         ) : active.startsWith('ontology-') ? (
           <section className="convo">
             <div className="convo__inner">

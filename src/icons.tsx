@@ -7,6 +7,7 @@ import {
   GitFork, HardDrives, Image, MagnifyingGlass, Microphone, Minus, Moon, PaperPlaneRight,
   Palette, Plus, Question, Robot, ShieldCheck, SidebarSimple, SlidersHorizontal, Sparkle,
   Stack, Star, Storefront, Sun, Table, TextT, TreeStructure, Flask, X, Graph, ListBullets, Tray,
+  ArrowLeft, Lock, PencilSimple, XCircle, Info,
 } from '@phosphor-icons/react'
 
 type P = { className?: string }
@@ -77,3 +78,8 @@ export const IconThumbDown = I(ThumbsDown)
 export const IconFollow = I(ArrowBendDownRight)
 export const IconRoute = I(Compass)
 export const IconFeedback = I(ThumbsUp)
+export const IconBack = I(ArrowLeft)
+export const IconLock = I(Lock)
+export const IconEdit = I(PencilSimple)
+export const IconError = I(XCircle)
+export const IconInfo = I(Info)

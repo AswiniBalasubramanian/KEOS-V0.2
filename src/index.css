@@ -1119,7 +1119,7 @@ input {
   display: grid;
   place-items: center;
   padding: 16px;
-  background: rgb(0 0 0 / 0.35);
+  background: rgb(0 0 0 / 0.6);
 }
 :root .dialog {
   width: min(560px, 100%);
