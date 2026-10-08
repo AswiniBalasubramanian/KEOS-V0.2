@@ -1319,3 +1319,10 @@ input {
 :root .mascot-float__close:hover { color: var(--text); border-color: var(--text-4); }
 @media (hover: none) { :root .mascot-float__close { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { :root .mascot-float__close { transition: none; } }
+
+/* ---- Welcome block: sits higher, with more room between logo, greeting, subtitle and the prompt ---- */
+:root .convo__inner { transform: translateY(-13%); }
+:root .logo3d { margin-bottom: 24px; }
+:root .convo__subtitle { margin-top: 2px; }
+:root .dock--hero .chips { margin-top: 32px; }
+@media (max-height: 640px) { :root .convo__inner { transform: translateY(-6%); } }
