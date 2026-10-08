@@ -13,6 +13,9 @@ import type { KeyboardEvent } from 'react'
 import { ThinkingOrb } from 'thinking-orbs'
 import { BorderBeam } from 'border-beam'
 import FloatingMascot from './FloatingMascot'
+import FeedbackMenu from './FeedbackMenu'
+import NewBadge from './NewBadge'
+import Tip from './Tip'
 import Logo3D from './Logo3D'
 import ProfileMenu from './ProfileMenu'
 import SettingsDialog from './SettingsDialog'
@@ -24,10 +27,10 @@ import './Conversation.css'
 import {
   IconNewChat, IconProjects, IconAgent, IconWorkflow, IconMarket,
   IconResearch, IconApps, IconAdmin, IconSettings, IconPanel, IconChevron,
-  IconSearch, IconBell, IconHelp, IconMic, IconSend, IconFolderPlus,
+  IconSearch, IconBell, IconMic, IconSend, IconFolderPlus,
   IconSpark, IconSun, IconMoon, IconClose, IconFolder, IconSliders, IconChat, IconFork,
   IconStar, IconGrid, IconBars, IconDownload, IconShare, IconSort, IconFile, IconRecords, IconClock,
-  IconPalette, IconCode, IconOntology, IconInbox, IconGlobe,
+  IconPalette, IconCode, IconOntology, IconInbox, IconGlobe, IconRoute,
 } from './icons'
 import DesignLab from './DesignLab'
 import ProjectDetail from './ProjectDetail'
@@ -78,16 +81,16 @@ function getInitialTheme(): Theme {
 const A = '/assets'
 const BUILD_LOGO = `${A}/keos-build-mark.svg`
 
-type Item = { id: string; label: string; Icon: (p: { className?: string }) => JSX.Element }
+type Item = { id: string; label: string; Icon: (p: { className?: string }) => JSX.Element; isNew?: boolean }
 
-type Note = { id: string; title: string; body: string; when: string }
+type Note = { id: string; title: string; body: string; when: string; cta?: { label: string; tour: 'ontology' } }
 const INBOX_ITEMS: Note[] = [
   { id: 'i1', title: 'Atlas finished the TAR scope-freeze review', body: '12 work orders flagged for re-sequencing before the CDU-1 shutdown window.', when: '2 hours ago' },
   { id: 'i2', title: 'You were mentioned in IR-2214 flange leak', body: 'Ravi asked you to confirm the root-cause owner before Friday.', when: 'Yesterday' },
   { id: 'i3', title: 'Budget alert for KEOS Internal', body: "You have used 26% of this month's $30.00 allowance.", when: '3 days ago' },
 ]
 const NEWS_ITEMS: Note[] = [
-  { id: 'n1', title: 'Ontology views are live', body: 'Namespaces, Induction, Explorer, Metrics and Playground now sit under Ontology in the sidebar.', when: 'Today' },
+  { id: 'n1', title: 'Ontology views are live', body: 'Namespaces, Induction, Explorer, Metrics and Playground now sit under Ontology in the sidebar.', when: 'Today', cta: { label: 'Tour the ontology views', tour: 'ontology' } },
   { id: 'n2', title: 'Three memory graph styles', body: 'Switch the project memory graph between Classic, Minimal and Neon.', when: '2 days ago' },
   { id: 'n3', title: 'CodeGenie preview', body: 'Chat and Code modes for builds are available from the Build menu.', when: '5 days ago' },
 ]
@@ -126,6 +129,14 @@ const control: Item[] = [
 
 const VISIT = registerVisit()
 
+const ONTOLOGY_TOUR: Step[] = [
+  { target: '[data-nav="ontology-namespaces"]', title: 'Namespaces', body: 'Keep the concepts, rules and terms of each team or project in their own space.' },
+  { target: '[data-nav="ontology-induction"]', title: 'Induction', body: 'Review new concepts and relationships suggested from your documents before they join the ontology.' },
+  { target: '[data-nav="ontology-explorer"]', title: 'Explorer', body: 'Browse how concepts connect and follow a thread from any node.' },
+  { target: '[data-nav="ontology-metrics"]', title: 'Metrics', body: 'Check how complete and how well used your ontology is.' },
+  { target: '[data-nav="ontology-playground"]', title: 'Playground', body: 'Try questions against the ontology without changing anything.' },
+]
+
 const TOUR_STEPS: Step[] = [
   { target: '[data-nav="newchat"]', title: 'Start a chat', body: 'Open a fresh conversation any time. Your earlier chats stay under All chats.' },
   { target: '.scope .chip', title: 'Choose what I search', body: 'Scope decides where answers come from: this device, selected projects, or your whole organization.' },
@@ -152,6 +163,7 @@ export default function Conversation() {
   }, [inboxOpen])
   const unread = [...INBOX_ITEMS, ...NEWS_ITEMS].filter((n) => !readIds.includes(n.id)).length
   const firstUnread = INBOX_ITEMS.find((n) => !readIds.includes(n.id))
+  const unreadInbox = INBOX_ITEMS.filter((n) => !readIds.includes(n.id)).length
   const [active, setActive] = useState('newchat')
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
@@ -276,8 +288,14 @@ export default function Conversation() {
   const [showMascot, setShowMascot] = useState(loadShowMascot)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
+  const [tourSteps, setTourSteps] = useState<Step[]>(TOUR_STEPS)
+  const startTour = (which: 'app' | 'ontology') => {
+    if (which === 'ontology') { setExpanded(true); setOntologyOpen(true) }
+    setTourSteps(which === 'ontology' ? ONTOLOGY_TOUR : TOUR_STEPS)
+    setTourOpen(true)
+  }
   const mascotDef = MASCOTS.find((m) => m.id === mascot) ?? MASCOTS[0]
-  const greeting = buildGreeting({ now: new Date(), firstName: 'Aswini', visit: VISIT, nextUpdate: firstUnread?.title, project: projects[0] })
+  const greeting = buildGreeting({ now: new Date(), firstName: 'Aswini', visit: VISIT, nextUpdate: firstUnread?.title, unreadCount: unreadInbox, project: projects[0] })
 
   const composerBlock = (
     <>
@@ -296,9 +314,9 @@ export default function Conversation() {
             </Button>
           </span>
         ))}
-        <Button variant="ghost" className="h-auto chip chip--icon" aria-label="Add project scope" onClick={addProject}>
+        <Tip label="Add a project to your scope" side="top"><Button variant="ghost" className="h-auto chip chip--icon" aria-label="Add project scope" onClick={addProject}>
           <IconFolderPlus className="chip__icon" />
-        </Button>
+        </Button></Tip>
       </div>
 
       <div className="composer-wrap">
@@ -312,7 +330,7 @@ export default function Conversation() {
             onHide={() => {
               setShowMascot(false)
               saveShowMascot(false)
-              setToast({ lead: 'Mascot hidden.', bold: 'Turn it back on', sub: 'Open Personal settings from your profile menu.' })
+              setToast({ lead: 'Mascot hidden.', bold: 'Bring it back any time', sub: 'Open Personal settings from your profile menu.' })
             }}
           />
         )}
@@ -399,24 +417,24 @@ export default function Conversation() {
             webSearch={webSearch}
             onToggleWebSearch={() => setWebSearch((v) => !v)}
             onPickFiles={() => fileRef.current?.click()}
-            onUnavailable={(what) => setToast({ lead: what, bold: 'is not wired up yet', sub: 'This prototype only attaches files from your device.' })}
+            onUnavailable={(what) => setToast({ lead: 'Coming soon:', bold: what, sub: 'For now, add files from your device with the first option.' })}
           />
           <Button variant="ghost" className="h-auto composer__smart">
             <IconSpark className="composer__smart-icon" />
             <span>Smart</span>
             <IconChevron className="chip__chev" />
           </Button>
-          <Button variant="ghost" 
+          <Tip label={listening ? 'Stop voice input' : 'Voice input'} side="top"><Button variant="ghost" 
             className={`h-auto composer__mic${listening ? ' is-listening' : ''}`}
             onClick={() => setListening((v) => !v)}
             aria-label={listening ? 'Stop listening' : 'Voice input'}
             aria-pressed={listening}
           >
             {listening ? <ThinkingOrb state="listening" size={20} /> : <IconMic />}
-          </Button>
-          <Button variant="ghost" className="h-auto composer__send" aria-label="Send" disabled={!canSend} onClick={send}>
+          </Button></Tip>
+          <Tip label={canSend ? 'Send' : 'Type a message to send'} shortcut={canSend ? 'Enter' : undefined} side="top"><Button variant="ghost" className="h-auto composer__send" aria-label="Send" disabled={!canSend} onClick={send}>
             <IconSend />
-          </Button>
+          </Button></Tip>
         </div>
       </div>
       </BorderBeam>
@@ -424,16 +442,16 @@ export default function Conversation() {
     </>
   )
 
-  const NavBtn = ({ id, label, Icon }: Item) => (
-    <Button variant="ghost" 
+  const NavBtn = ({ id, label, Icon, isNew }: Item) => (
+    <Tip label={label} side="right" block disabled={expanded}><Button variant="ghost" 
       data-nav={id}
       className={`h-auto nav__item${active === id ? ' is-active' : ''}`}
       onClick={() => setActive(id)}
-      title={!expanded ? label : undefined}
     >
       <Icon className="nav__icon" />
       <span className="nav__label">{label}</span>
-    </Button>
+      {isNew && expanded && <NewBadge />}
+    </Button></Tip>
   )
 
   return (
@@ -445,16 +463,15 @@ export default function Conversation() {
             {expanded ? (
               <img className="sidebar__logo" src={BUILD_LOGO} alt="KEOS" />
             ) : (
-              <Button
+              <Tip label="Expand sidebar" side="right"><Button
                 variant="ghost"
                 className="h-auto sidebar__logo-btn"
                 aria-label="Expand sidebar"
-                title="Expand sidebar"
                 onClick={() => setExpanded(true)}
               >
                 <img className="sidebar__logo" src={BUILD_LOGO} alt="" aria-hidden="true" />
                 <IconPanel className="sidebar__logo-panel" />
-              </Button>
+              </Button></Tip>
             )}
             <span className="sidebar__brand">
               KEOS
@@ -485,40 +502,38 @@ export default function Conversation() {
                 </Button>
               </div>
             )}
-            <Button variant="ghost" 
+            <Tip label={expanded ? 'Collapse sidebar' : 'Expand sidebar'} side="bottom"><Button variant="ghost" 
               className="h-auto sidebar__toggle"
               onClick={() => setExpanded((v) => !v)}
               aria-label={expanded ? 'Collapse sidebar' : 'Expand sidebar'}
             >
               <IconPanel />
-            </Button>
+            </Button></Tip>
           </div>
         </div>
 
         <div className="sidebar__scroll">
-          <Button variant="ghost" 
+          <Tip label={active === 'codegenie' ? 'New build' : 'New chat'} side="right" block disabled={expanded}><Button variant="ghost" 
             data-nav="newchat"
             className={`h-auto nav__item nav__item--primary${active === 'newchat' || active === 'codegenie' ? ' is-active' : ''}`}
             onClick={active === 'codegenie' ? newBuild : newChat}
-            title={!expanded ? (active === 'codegenie' ? 'New build' : 'New chat') : undefined}
           >
             <IconNewChat className="nav__icon" />
             <span className="nav__label">{active === 'codegenie' ? 'New build' : 'New chat'}</span>
-          </Button>
+          </Button></Tip>
 
           {/* Projects (expandable) */}
-          <Button variant="ghost" 
+          <Tip label="Projects" side="right" block disabled={expanded}><Button variant="ghost" 
             data-nav="projects"
             className="h-auto nav__item"
             onClick={() => (expanded ? setProjectsOpen((v) => !v) : setExpanded(true))}
-            title={!expanded ? 'Projects' : undefined}
           >
             <IconProjects className="nav__icon" />
             <span className="nav__label">Projects</span>
             <IconChevron
               className={`nav__chevron${projectsOpen ? ' is-open' : ''}`}
             />
-          </Button>
+          </Button></Tip>
           {expanded && projectsOpen && (
             <div className="nav__sub">
               <Button variant="ghost" className="h-auto nav__subitem" onClick={() => setActive('project')}>All projects</Button>
@@ -527,22 +542,22 @@ export default function Conversation() {
           )}
 
           {/* Ontology (expandable) */}
-          <Button variant="ghost"
+          <Tip label="Ontology" side="right" block disabled={expanded}><Button variant="ghost"
             data-nav="ontology"
             className="h-auto nav__item"
             onClick={() => (expanded ? setOntologyOpen((v) => !v) : setExpanded(true))}
-            title={!expanded ? 'Ontology' : undefined}
           >
             <IconOntology className="nav__icon" />
             <span className="nav__label">Ontology</span>
             <IconChevron className={`nav__chevron${ontologyOpen ? ' is-open' : ''}`} />
-          </Button>
+          </Button></Tip>
           {expanded && ontologyOpen && (
             <div className="nav__sub">
               {ONTOLOGY.map((o) => (
                 <Button
                   key={o.id}
                   variant="ghost"
+                  data-nav={o.id}
                   className={`h-auto nav__subitem${active === o.id ? ' is-active' : ''}`}
                   onClick={() => setActive(o.id)}
                 >
@@ -569,7 +584,8 @@ export default function Conversation() {
         </div>
 
         <div className="sidebar__footer">
-          <ProfileMenu onWalkthrough={() => setTourOpen(true)} onSettings={() => setSettingsOpen(true)}>
+          <div className="footer-row">
+          <ProfileMenu onWalkthrough={() => startTour('app')} onSettings={() => setSettingsOpen(true)}>
             <div className="user">
               <span className="user__avatar">AB</span>
               <span className="user__text">
@@ -578,6 +594,8 @@ export default function Conversation() {
               </span>
             </div>
           </ProfileMenu>
+            <FeedbackMenu />
+          </div>
         </div>
       </aside>
 
@@ -594,8 +612,8 @@ export default function Conversation() {
             </span>
           </nav>
           <div className="topbar__actions">
-            <Button variant="ghost" className="h-auto" aria-label="Search"><IconSearch /></Button>
-            <Button
+            <Tip label="Search" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Search"><IconSearch /></Button></Tip>
+            <Tip label={unread ? `Updates (${unread} new)` : 'Updates'} side="bottom"><Button
               variant="ghost"
               className="h-auto topbar__inbox"
               aria-label={unread ? `Inbox, ${unread} unread` : 'Inbox'}
@@ -604,17 +622,15 @@ export default function Conversation() {
             >
               <IconInbox />
               {unread > 0 && <span className="topbar__dot" />}
-            </Button>
-            <Button variant="ghost" className="h-auto" aria-label="Notifications"><IconBell /></Button>
-            <Button variant="ghost" className="h-auto" aria-label="Help"><IconHelp /></Button>
-            <Button variant="ghost" className="h-auto"
+            </Button></Tip>
+            <Tip label="Notifications" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Notifications"><IconBell /></Button></Tip>
+            <Tip label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'} side="bottom"><Button variant="ghost" className="h-auto"
               onClick={toggleTheme}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
               aria-pressed={theme === 'dark'}
-              title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
               <span key={theme} className="icon-swap">{theme === 'dark' ? <IconSun /> : <IconMoon />}</span>
-            </Button>
+            </Button></Tip>
           </div>
         </header>
 
@@ -662,7 +678,7 @@ export default function Conversation() {
               {filteredChats.length === 0 ? (
                 <div className="chats__empty">
                   <IconChat className="chats__empty-icon" />
-                  <p>{chatQuery ? 'No chats found' : 'Your chats appear here'}</p>
+                  <p>{chatQuery ? 'No chats match your search' : 'No chats yet. Start one and it appears here.'}</p>
                 </div>
               ) : (
                 Object.entries(chatGroups).map(([group, items]) => (
@@ -694,7 +710,7 @@ export default function Conversation() {
             <div className="convo__inner">
               <span className="codegenie-code__icon"><IconOntology /></span>
               <h1 className="convo__title">{ONTOLOGY.find((o) => o.id === active)?.label}</h1>
-              <p className="convo__subtitle">This ontology view is coming soon.</p>
+              <p className="convo__subtitle">This view is on its way. It will appear here as soon as it is ready.</p>
             </div>
           </section>
         ) : active === 'codegenie' && codeMode === 'code' ? (
@@ -702,7 +718,7 @@ export default function Conversation() {
             <div className="convo__inner">
               <span className="codegenie-code__icon"><IconCode /></span>
               <h1 className="convo__title">Code workspace</h1>
-              <p className="convo__subtitle">Your CodeGenie build environment is coming soon.</p>
+              <p className="convo__subtitle">Your build workspace is on its way. Soon you can turn a prompt into working code here.</p>
             </div>
           </section>
         ) : (
@@ -745,10 +761,18 @@ export default function Conversation() {
                 {active === 'codegenie' ? (
                   "Big goals take focus. Let's get to work."
                 ) : (
-                  <>{greeting.lead}<br />{greeting.next}</>
+                  <>{greeting.lead}</>
                 )}
               </p>
-              <div className="dock dock--hero">{composerBlock}</div>
+              <div className="dock dock--hero">
+                {composerBlock}
+                {active !== 'codegenie' && (
+                  <button type="button" className="convo__next" onClick={() => setInboxOpen(true)} aria-label={`${greeting.next} Open updates.`}>
+                    <IconInbox className="convo__next-icon" />
+                    <span>{greeting.next}</span>
+                  </button>
+                )}
+              </div>
             </div>
           )}
         </section>
@@ -864,9 +888,9 @@ export default function Conversation() {
           <aside className="inbox inbox--side" aria-label="Inbox">
             <div className="inbox__head">
               <span className="inbox__heading">Updates</span>
-              <Button variant="ghost" className="h-auto inbox__close" aria-label="Close inbox" onClick={() => setInboxOpen(false)}>
+              <Tip label="Close updates" side="bottom"><Button variant="ghost" className="h-auto inbox__close" aria-label="Close inbox" onClick={() => setInboxOpen(false)}>
                 <IconClose />
-              </Button>
+              </Button></Tip>
             </div>
             <div className="inbox__tabs">
               <SegmentedControl
@@ -880,7 +904,28 @@ export default function Conversation() {
               />
             </div>
             <div className="inbox__list">
-              {(inboxTab === 'inbox' ? INBOX_ITEMS : NEWS_ITEMS).map((n) => (
+              {(inboxTab === 'inbox' ? INBOX_ITEMS : NEWS_ITEMS).map((n) =>
+                n.cta ? (
+                  <div key={n.id} className="inbox__item inbox__item--cta">
+                    <span className="inbox__title">
+                      {!readIds.includes(n.id) && <span className="inbox__unread" aria-label="Unread" />}
+                      {n.title}
+                    </span>
+                    <span className="inbox__body">{n.body}</span>
+                    <span className="inbox__when">{n.when}</span>
+                    <Button
+                      variant="ghost"
+                      className="h-auto inbox__cta"
+                      onClick={() => {
+                        setReadIds((r) => (r.includes(n.id) ? r : [...r, n.id]))
+                        setInboxOpen(false)
+                        startTour(n.cta!.tour)
+                      }}
+                    >
+                      <IconRoute className="inbox__cta-icon" /> {n.cta.label}
+                    </Button>
+                  </div>
+                ) : (
                 <Button
                   key={n.id}
                   variant="ghost"
@@ -894,7 +939,8 @@ export default function Conversation() {
                   <span className="inbox__body">{n.body}</span>
                   <span className="inbox__when">{n.when}</span>
                 </Button>
-              ))}
+                ),
+              )}
             </div>
           </aside>
         )}
@@ -909,7 +955,7 @@ export default function Conversation() {
         showMascot={showMascot}
         onShowMascot={(on) => { setShowMascot(on); saveShowMascot(on) }}
       />
-      <Walkthrough open={tourOpen} steps={TOUR_STEPS} onClose={() => setTourOpen(false)} />
+      <Walkthrough open={tourOpen} steps={tourSteps} onClose={() => setTourOpen(false)} />
 
       {toast && (
         <div className="toast" role="status">

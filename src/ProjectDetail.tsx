@@ -1,5 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import Tip from './Tip'
 import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
@@ -166,26 +167,26 @@ export default function ProjectDetail() {
       <div className="pd__body">
         {tab !== 'memory' ? (
           <div className="pd__placeholder">
-            <p>{TABS.find((t) => t.id === tab)?.label} isn&rsquo;t wired up in this prototype yet.</p>
+            <p>{TABS.find((t) => t.id === tab)?.label} will appear here soon. Try Memory to see what is ready.</p>
           </div>
         ) : (
           <>
             <div className="pd__mem-head">
               <div>
                 <h2>Project memory</h2>
-                <p>Persistent decisions and context shared by every agent in this project.</p>
+                <p>What your agents remember about this project, shared with every agent.</p>
               </div>
               <div className="pd__mem-actions">
                 <div className="pd__seg">
-                  <Button variant="ghost" aria-label="List view" title="List view" className={`h-auto ${memView === 'list' ? 'is-active' : ''}`} onClick={() => setMemView('list')}>
+                  <Tip label="List view" side="bottom"><Button variant="ghost" aria-label="List view" className={`h-auto ${memView === 'list' ? 'is-active' : ''}`} onClick={() => setMemView('list')}>
                     <IconList />
-                  </Button>
-                  <Button variant="ghost" aria-label="Graph view" title="Graph view" className={`h-auto ${memView === 'graph' ? 'is-active' : ''}`} onClick={() => setMemView('graph')}>
+                  </Button></Tip>
+                  <Tip label="Graph view" side="bottom"><Button variant="ghost" aria-label="Graph view" className={`h-auto ${memView === 'graph' ? 'is-active' : ''}`} onClick={() => setMemView('graph')}>
                     <IconOntology />
-                  </Button>
+                  </Button></Tip>
                 </div>
                 <Button variant="ghost" className="h-auto pd__btn pd__btn--accent pd__btn--solid">
-                  <IconExternal /> Export To Projects
+                  <IconExternal /> Export to projects
                 </Button>
               </div>
             </div>
@@ -226,7 +227,7 @@ export default function ProjectDetail() {
                   </TableHeader>
                   <TableBody>
                     {listRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="mem-table__empty">No memories match your filters.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="mem-table__empty">No memories match. Clear a filter or try another search.</TableCell></TableRow>
                     ) : (
                       listRows.map((it) => (
                         <TableRow key={it.kind} onClick={() => setSelected(it.kind)}>
@@ -247,10 +248,10 @@ export default function ProjectDetail() {
               <div className="pd__graph-row">
                 <div className="pd__graph-card">
                   <div className="pd__graph-toolbar">
-                    <Button variant="ghost" className="h-auto" aria-label="Expand" onClick={() => setZoom(1)}><IconExpand /></Button>
-                    <Button variant="ghost" className="h-auto" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(1.4, z + 0.1))}><IconPlus /></Button>
-                    <Button variant="ghost" className="h-auto" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))}><IconMinus /></Button>
-                    <Button variant="ghost" className="h-auto" aria-label="Reset" onClick={() => { setZoom(1); setSelected('core'); setQuery('') }}><IconRefresh /></Button>
+                    <Tip label="Reset view" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Expand" onClick={() => setZoom(1)}><IconExpand /></Button></Tip>
+                    <Tip label="Zoom in" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Zoom in" onClick={() => setZoom((z) => Math.min(1.4, z + 0.1))}><IconPlus /></Button></Tip>
+                    <Tip label="Zoom out" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Zoom out" onClick={() => setZoom((z) => Math.max(0.7, z - 0.1))}><IconMinus /></Button></Tip>
+                    <Tip label="Reset graph" side="bottom"><Button variant="ghost" className="h-auto" aria-label="Reset" onClick={() => { setZoom(1); setSelected('core'); setQuery('') }}><IconRefresh /></Button></Tip>
                     <div className="pd__search pd__search--toolbar">
                       <IconSearch />
                       <Input
@@ -278,7 +279,7 @@ export default function ProjectDetail() {
 
                   {tipOpen && (
                     <div className="brain-tip">
-                      <span><b>Tip:</b> Drag the brain to rotate · Scroll to zoom · Click a dot to learn more</span>
+                      <span><b>Tip:</b> Drag to rotate, scroll to zoom, click a dot for details.</span>
                       <Button variant="ghost" className="h-auto" aria-label="Dismiss tip" onClick={() => setTipOpen(false)}><IconClose /></Button>
                     </div>
                   )}

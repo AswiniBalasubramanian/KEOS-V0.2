@@ -1326,3 +1326,232 @@ input {
 :root .convo__subtitle { margin-top: 2px; }
 :root .dock--hero .chips { margin-top: 32px; }
 @media (max-height: 640px) { :root .convo__inner { transform: translateY(-6%); } }
+
+/* ---- Feedback popover (top bar) ---- */
+:root .feedback { position: relative; display: inline-flex; }
+:root .feedback__trigger.is-open { background: var(--active); color: var(--text); }
+:root .feedback__panel { top: calc(100% + 10px); bottom: auto; right: 0; left: auto; width: 320px; padding: 8px 12px 12px; transform-origin: top right; }
+:root .feedback__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 4px 0 10px; }
+:root .feedback__q { font-size: 13px; color: var(--text-2); }
+:root .feedback__votes { display: flex; gap: 4px; }
+:root .feedback__vote {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease), border-color 160ms var(--ease);
+}
+:root .feedback__vote svg { width: 16px; height: 16px; }
+:root .feedback__vote:hover { background: var(--hover); color: var(--text); }
+:root .feedback__vote.is-on { background: var(--active); border-color: var(--text-4); color: var(--text); }
+:root .feedback__kinds { display: flex; gap: 6px; padding-bottom: 10px; }
+:root .feedback__kind {
+  padding: 4px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: transparent;
+  font-size: 12px;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), border-color 160ms var(--ease), color 160ms var(--ease);
+}
+:root .feedback__kind:hover { background: var(--hover); }
+:root .feedback__kind.is-on { background: var(--active); border-color: var(--text-4); color: var(--text); font-weight: 500; }
+:root .feedback__field { display: block; }
+:root .feedback__label { display: block; margin-bottom: 4px; font-size: 12px; color: var(--text-4); }
+:root .feedback__text {
+  display: block;
+  width: 100%;
+  resize: none;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text);
+  outline: none;
+  box-shadow: none;
+}
+:root .feedback__text:focus, :root .feedback__text:focus-visible { border-color: var(--text-4); outline: none; box-shadow: none; }
+:root .feedback__actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
+:root .feedback__btn { padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text); }
+:root .feedback__btn:hover { background: var(--hover); }
+:root .feedback__btn--primary { border-color: transparent; background: var(--accent-solid); color: var(--on-accent); }
+:root .feedback__btn--primary:hover { background: var(--accent-solid-hover); }
+:root .feedback__btn:disabled { background: var(--active); color: var(--text-4); border-color: transparent; cursor: not-allowed; opacity: 1; }
+:root .feedback__done { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 8px 0 4px; }
+:root .feedback__done-icon { width: 20px; height: 20px; color: var(--ok-text, var(--text)); }
+:root .feedback__done-title { font-size: 14px; font-weight: 500; color: var(--text); }
+:root .feedback__done-text { margin-bottom: 6px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+@media (max-width: 560px) { :root .feedback__panel { width: min(320px, calc(100vw - 24px)); } }
+
+/* Feedback is a centred modal dialog (reuses the dialog scrim and card) */
+:root .feedback__dialog { width: min(440px, 100%); }
+:root .feedback__row { padding-top: 0; }
+
+/* Feedback dialog: ticket mode input and the help line */
+:root .feedback__input {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  box-shadow: none;
+}
+:root .feedback__input:focus, :root .feedback__input:focus-visible { border-color: var(--text-4); outline: none; box-shadow: none; }
+:root .feedback__alt { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); font-size: 13px; color: var(--text-3); }
+:root .feedback__link { padding: 0; border: 0; background: transparent; font: inherit; font-weight: 500; color: var(--text); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+:root .feedback__link:hover { color: var(--text-2); }
+
+/* ---- Sidebar footer: profile on the left, feedback icon at the right end of the name ---- */
+:root .footer-row { display: flex; align-items: center; gap: 4px; width: 100%; }
+:root .footer-row .profile { flex: 1; min-width: 0; width: auto; }
+:root .footer-row .feedback__trigger { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; color: var(--text-3); }
+:root .footer-row .feedback__trigger:hover { color: var(--text); }
+:root .app.is-collapsed .footer-row { flex-direction: column-reverse; gap: 4px; }
+
+/* ---- Feedback dialog: 3D thumbs-up bubble tile next to the title ---- */
+:root .feedback__dialog .dialog__head { justify-content: flex-start; gap: 10px; }
+:root .feedback__dialog .dialog__close { margin-left: auto; }
+:root .feedback__badge {
+  flex-shrink: 0;
+  width: 96px;
+  height: 96px;
+  background: url('/assets/feedback-icon.png') no-repeat;
+  background-size: 163.98px 110.01px;
+  background-position: -33.99px -5.45px;
+  filter: drop-shadow(0 2px 3px rgb(0 0 0 / 0.18));
+}
+
+:root .feedback__dialog .dialog__head { gap: 14px; margin-bottom: 14px; }
+:root .feedback__dialog .dialog__title { font-size: 18px; }
+
+/* Feedback badge sits on its own line under the title */
+:root .feedback__dialog .dialog__head { gap: 0; margin-bottom: 10px; justify-content: space-between; }
+:root .feedback__dialog .dialog__close { margin-left: 0; }
+:root .feedback__badge { display: block; margin: 0 0 14px; }
+:root .feedback__badge { margin: 0 auto 14px; }
+
+/* Dark theme: use the dark feedback tile */
+:root[data-theme='dark'] .feedback__badge {
+  background-image: url('/assets/feedback-icon-dark.png');
+  background-size: 177.40px 119.02px;
+  background-position: -40.42px -11.23px;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.45));
+}
+
+/* Sidebar sub-items indented a step further under their parent label */
+:root .nav__sub { padding-left: 40px; }
+
+/* "Updates waiting" line sits under the prompt box and opens the inbox */
+:root .convo__next {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  margin-top: 14px;
+  padding: 5px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 13px;
+  color: var(--text-3);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease), color 160ms var(--ease);
+}
+:root .convo__next:hover { background: var(--hover); color: var(--text); }
+:root .convo__next span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+:root .convo__next-icon { flex-shrink: 0; width: 16px; height: 16px; color: var(--text-4); }
+:root .convo__next:hover .convo__next-icon { color: var(--text-2); }
+
+/* Welcome greeting: a smaller title */
+:root .convo__title { font-size: 26px; }
+@media (max-width: 560px) { :root .convo__title { font-size: 22px; } }
+
+/* ---- Metal "New" badge ---- */
+:root .new-badge { display: inline-flex; align-items: center; margin-left: 8px; vertical-align: middle; line-height: 0; }
+:root .nav__item .new-badge { margin-left: auto; }
+:root .scope__label { display: inline-flex; align-items: center; }
+
+/* Updates line: gray outline pill */
+:root .convo__next { border: 1px solid var(--border-strong); background: var(--bg-elevated); }
+:root .convo__next:hover { border-color: var(--text-4); }
+
+/* Updates line: no outline, left-aligned with the prompt box */
+:root .convo__next { align-self: flex-start; border: 0; background: transparent; padding: 5px 0; }
+:root .convo__next:hover { background: transparent; color: var(--text); }
+
+/* Updates line starts where the prompt text starts (composer border 1px + padding 12px) */
+:root .convo__next { padding-left: 13px; }
+:root .dock--hero .convo__next { align-self: flex-start; margin-top: 2px; padding-left: 13px; }
+
+/* Smart selector: no outline */
+:root .composer__smart { border: 0; }
+:root .composer__smart:hover { border: 0; background: var(--hover); }
+
+/* ---- Updates: walkthrough call to action ---- */
+:root .inbox__item--cta { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px; }
+:root .inbox__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: var(--accent-solid);
+  color: var(--on-accent);
+  font-size: 13px;
+  font-weight: 500;
+}
+:root .inbox__cta:hover { background: var(--accent-solid-hover); color: var(--on-accent); }
+:root .inbox__cta-icon { width: 16px; height: 16px; }
+
+/* ---- Tooltip: one calm, professional style for the whole app ---- */
+:root .tip-anchor { display: inline-flex; }
+:root .tip-anchor--block { display: flex; width: 100%; }
+:root .tip-anchor--block > * { width: 100%; }
+:root .tip-pos { z-index: 90; }
+:root .tip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 260px;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: 0;
+  box-shadow: 0 6px 16px -6px rgb(0 0 0 / 0.35);
+  pointer-events: none;
+  transform-origin: var(--transform-origin);
+  transition: opacity 120ms var(--ease), transform 140ms var(--ease);
+}
+:root .tip[data-starting-style],
+:root .tip[data-ending-style] { opacity: 0; transform: scale(0.96); }
+:root .tip__key {
+  padding: 0 5px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--bg) 18%, transparent);
+  color: color-mix(in srgb, var(--bg) 85%, transparent);
+  font: 500 12px/18px inherit;
+  font-family: inherit;
+}
+@media (hover: none) { :root .tip-pos { display: none; } }
+@media (prefers-reduced-motion: reduce) { :root .tip { transition: none; } }

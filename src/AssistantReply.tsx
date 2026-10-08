@@ -4,6 +4,7 @@ import {
   IconChevron, IconFile, IconDownload, IconFolder, IconBook, IconCopy, IconCheck,
   IconRefresh, IconShare, IconThumbUp, IconThumbDown, IconFollow,
 } from './icons'
+import Tip from './Tip'
 import './AssistantReply.css'
 
 /* 5x5 Bayer-style ordering so the pixels light up in a dithered pattern, not a sweep. */
@@ -153,7 +154,7 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
               {INTRO.slice(0, wordsShown).map((w, i) => (
                 <span key={i} className="reply__word">
                   {w}
-                  {CITE_AFTER[i + 1] && <sup className="cite" title={SOURCES[CITE_AFTER[i + 1] - 1].label}>{CITE_AFTER[i + 1]}</sup>}{' '}
+                  {CITE_AFTER[i + 1] && <Tip label={`Source ${CITE_AFTER[i + 1]}: ${SOURCES[CITE_AFTER[i + 1] - 1].label}`} side="top"><sup className="cite">{CITE_AFTER[i + 1]}</sup></Tip>}{' '}
                 </span>
               ))}
               {phase === 'streaming' && wordsShown < W && <span className="reply__caret" aria-hidden />}
@@ -202,7 +203,7 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
             <section className="reply__sources reply__in" aria-label="Sources">
               <span className="reply__label">Sources</span>
               {SOURCES.map((s) => (
-                <button key={s.n} type="button" className="source" title={`Sample source: ${s.label}`}>
+                <button key={s.n} type="button" className="source" aria-label={`Source ${s.n}: ${s.label} (sample)`}>
                   <span className="source__n">{s.n}</span>
                   {s.kind === 'file' ? <IconFile className="source__i" /> : s.kind === 'folder' ? <IconFolder className="source__i" /> : <IconBook className="source__i" />}
                   <span className="source__t">{s.label}</span>
@@ -211,21 +212,21 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
             </section>
 
             <div className="reply__actions reply__in" role="group" aria-label="Reply actions">
-              <Button variant="ghost" className="h-auto reply__act" aria-label={copied ? 'Copied' : 'Copy reply'} title={copied ? 'Copied' : 'Copy'} onClick={copy}>
+              <Tip label={copied ? 'Copied' : 'Copy'} side="top"><Button variant="ghost" className="h-auto reply__act" aria-label={copied ? 'Copied' : 'Copy reply'} onClick={copy}>
                 {copied ? <IconCheck /> : <IconCopy />}
-              </Button>
-              <Button variant="ghost" className={`h-auto reply__act${vote === 'up' ? ' is-on' : ''}`} aria-label="Good reply" aria-pressed={vote === 'up'} title="Good reply" onClick={() => setVote((v) => (v === 'up' ? null : 'up'))}>
+              </Button></Tip>
+              <Tip label="Good reply" side="top"><Button variant="ghost" className={`h-auto reply__act${vote === 'up' ? ' is-on' : ''}`} aria-label="Good reply" aria-pressed={vote === 'up'} onClick={() => setVote((v) => (v === 'up' ? null : 'up'))}>
                 <IconThumbUp />
-              </Button>
-              <Button variant="ghost" className={`h-auto reply__act${vote === 'down' ? ' is-on' : ''}`} aria-label="Poor reply" aria-pressed={vote === 'down'} title="Poor reply" onClick={() => setVote((v) => (v === 'down' ? null : 'down'))}>
+              </Button></Tip>
+              <Tip label="Poor reply" side="top"><Button variant="ghost" className={`h-auto reply__act${vote === 'down' ? ' is-on' : ''}`} aria-label="Poor reply" aria-pressed={vote === 'down'} onClick={() => setVote((v) => (v === 'down' ? null : 'down'))}>
                 <IconThumbDown />
-              </Button>
-              <Button variant="ghost" className="h-auto reply__act" aria-label="Regenerate reply" title="Regenerate" onClick={() => setRun((r) => r + 1)}>
+              </Button></Tip>
+              <Tip label="Regenerate" side="top"><Button variant="ghost" className="h-auto reply__act" aria-label="Regenerate reply" onClick={() => setRun((r) => r + 1)}>
                 <IconRefresh />
-              </Button>
-              <Button variant="ghost" className="h-auto reply__act" aria-label="Share reply" title="Share">
+              </Button></Tip>
+              <Tip label="Share" side="top"><Button variant="ghost" className="h-auto reply__act" aria-label="Share reply">
                 <IconShare />
-              </Button>
+              </Button></Tip>
             </div>
 
             <div className="reply__followups reply__in" aria-label="Follow-up actions">

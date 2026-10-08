@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useMotionValue, useReducedMotion } from 'motion/react'
 import { Mascot } from 'page-mascot'
 import { IconClose } from './icons'
+import Tip from './Tip'
 
 const KEY = 'keos-mascot-pos'
 
@@ -85,18 +86,17 @@ export default function FloatingMascot({ directions, reactions, name, size = 88,
       }}
       onClickCapture={(e) => { if (dragged.current) { e.stopPropagation(); e.preventDefault() } }}
       onDoubleClick={reset}
-      title="Drag to move. Double-click to put it back."
     >
-      <Mascot
+      <Tip label="Drag to move. Double-click to reset." side="top"><Mascot
         className="composer-mascot"
         directions={directions}
         reactions={reactions}
         size={size}
         label={`${name} mascot. It follows your cursor and reacts when clicked. Drag to move it.`}
-      />
-      <button type="button" className="mascot-float__close" aria-label="Hide mascot" onClick={onHide}>
+      /></Tip>
+      <Tip label="Hide mascot" side="top"><button type="button" className="mascot-float__close" aria-label="Hide mascot" onClick={onHide}>
         <IconClose />
-      </button>
+      </button></Tip>
     </motion.div>
   )
 }

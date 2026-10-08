@@ -3,6 +3,8 @@ import type { KeyboardEvent } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { motionTokens } from '@/components/arc/lib/motion-tokens'
 import { Button } from '@/components/ui/button'
+import NewBadge from './NewBadge'
+import Tip from './Tip'
 import { IconPlus, IconAttach, IconFolder, IconGlobe, IconPlug, IconCheck } from './icons'
 
 type Props = {
@@ -13,16 +15,16 @@ type Props = {
 }
 
 type Item =
-  | { id: 'upload'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action' }
-  | { id: 'project'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action' }
-  | { id: 'connectors'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action' }
-  | { id: 'web'; label: string; hint: string; Icon: typeof IconAttach; kind: 'toggle' }
+  | { id: 'upload'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action'; isNew?: boolean }
+  | { id: 'project'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action'; isNew?: boolean }
+  | { id: 'connectors'; label: string; hint: string; Icon: typeof IconAttach; kind: 'action'; isNew?: boolean }
+  | { id: 'web'; label: string; hint: string; Icon: typeof IconAttach; kind: 'toggle'; isNew?: boolean }
 
 const ITEMS: Item[] = [
   { id: 'upload', label: 'Add files or photos', hint: 'From this device', Icon: IconAttach, kind: 'action' },
-  { id: 'project', label: 'Add from project', hint: 'Files already in your projects', Icon: IconFolder, kind: 'action' },
-  { id: 'connectors', label: 'Add connectors', hint: 'Pull in data from other tools', Icon: IconPlug, kind: 'action' },
-  { id: 'web', label: 'Web search', hint: 'Include live web results', Icon: IconGlobe, kind: 'toggle' },
+  { id: 'project', label: 'Add from project', hint: 'Reuse files from your projects', Icon: IconFolder, kind: 'action' },
+  { id: 'connectors', label: 'Add connectors', hint: 'Bring in data from tools like SAP', Icon: IconPlug, kind: 'action' },
+  { id: 'web', label: 'Web search', hint: 'Add live results from the web', Icon: IconGlobe, kind: 'toggle', isNew: true },
 ]
 
 export default function AttachMenu({ webSearch, onToggleWebSearch, onPickFiles, onUnavailable }: Props) {
@@ -66,18 +68,17 @@ export default function AttachMenu({ webSearch, onToggleWebSearch, onPickFiles, 
 
   return (
     <div className="attach" ref={root}>
-      <Button
+      <Tip label="Add to message" side="top"><Button
         variant="ghost"
         className={`h-auto composer__attach${open ? ' is-open' : ''}`}
         aria-label="Add to message"
-        title="Add to message"
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? id : undefined}
         onClick={() => setOpen((v) => !v)}
       >
         <IconPlus />
-      </Button>
+      </Button></Tip>
 
       <AnimatePresence>
         {open && (
@@ -104,7 +105,7 @@ export default function AttachMenu({ webSearch, onToggleWebSearch, onPickFiles, 
               >
                 <it.Icon className="scope__icon" />
                 <span className="scope__text">
-                  <span className="scope__label">{it.label}</span>
+                  <span className="scope__label">{it.label}{it.isNew && <NewBadge scale={0.72} />}</span>
                   <span className="scope__hint">{it.hint}</span>
                 </span>
                 {it.kind === 'toggle' && webSearch && <IconCheck className="scope__check" />}

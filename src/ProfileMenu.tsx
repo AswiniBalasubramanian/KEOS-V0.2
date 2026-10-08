@@ -3,6 +3,7 @@ import type { KeyboardEvent, ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { motionTokens } from '@/components/arc/lib/motion-tokens'
 import { IconRoute, IconSliders } from './icons'
+import NewBadge from './NewBadge'
 
 type Props = {
   children: ReactNode
@@ -41,8 +42,8 @@ export default function ProfileMenu({ children, onWalkthrough, onSettings }: Pro
   }
 
   const items = [
-    { label: 'Walkthrough', hint: 'A quick tour of KEOS', Icon: IconRoute, run: onWalkthrough },
-    { label: 'Personal settings', hint: 'Mascot and preferences', Icon: IconSliders, run: onSettings },
+    { label: 'Walkthrough', hint: 'A quick tour of KEOS', Icon: IconRoute, run: onWalkthrough, isNew: true },
+    { label: 'Personal settings', hint: 'Mascot and preferences', Icon: IconSliders, run: onSettings, isNew: false },
   ]
 
   return (
@@ -82,7 +83,7 @@ export default function ProfileMenu({ children, onWalkthrough, onSettings }: Pro
               >
                 <it.Icon className="scope__icon" />
                 <span className="scope__text">
-                  <span className="scope__label">{it.label}</span>
+                  <span className="scope__label">{it.label}{it.isNew && <NewBadge scale={0.72} />}</span>
                   <span className="scope__hint">{it.hint}</span>
                 </span>
               </motion.button>

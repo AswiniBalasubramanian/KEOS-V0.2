@@ -26,30 +26,29 @@ export default function Login() {
 
           <div className="brand__content">
             <div className="brand__head">
-              <h1 className="brand__title">Your enterprise AI workspace</h1>
+              <h1 className="brand__title">Answers from every project, in one place</h1>
               <p className="brand__desc">
-                Everything you need to search, collaborate, automate, and make
-                better decisions, securely connected in one place.
+                Search, collaborate, automate and decide with the context of your projects, connectors and documents.
               </p>
             </div>
 
             <ul className="brand__list">
               <li>
                 <img src={`${A}/check-filled.svg`} alt="" />
-                <span>Agentic chat, projects, research, and apps in one platform</span>
+                <span>Chat with agents, run research and build apps in one place</span>
               </li>
               <li>
                 <img src={`${A}/check-outline.svg`} alt="" />
-                <span>Governed connectors into SAP, historians, and document stores</span>
+                <span>Secure connectors to SAP, historians and document stores</span>
               </li>
               <li>
                 <img src={`${A}/check-outline.svg`} alt="" />
-                <span>Responsible AI assurance on every response</span>
+                <span>Responsible AI checks on every answer</span>
               </li>
             </ul>
           </div>
 
-          <p className="brand__footer">Designed for KaarTech people</p>
+          <p className="brand__footer">Built for KaarTech teams</p>
         </div>
 
         <div className="badge badge--tl">
@@ -69,10 +68,9 @@ export default function Login() {
         <div className="auth__inner">
           <div className="auth__head">
             <div className="auth__intro">
-              <h2 className="auth__title">Welcome to KEOS</h2>
+              <h2 className="auth__title">Sign in to KEOS</h2>
               <p className="auth__subtitle">
-                Sign in with your enterprise account to begin your personalized
-                onboarding.
+                Use your enterprise account. It takes a few seconds.
               </p>
             </div>
             <div className="steps" aria-hidden>
@@ -87,17 +85,17 @@ export default function Login() {
           <form className="auth__form" onSubmit={(e) => e.preventDefault()}>
             <button type="button" className="btn-sso">
               <img src={`${A}/corporate.svg`} alt="" />
-              <span>Continue with Enterprise SSO</span>
+              <span>Continue with enterprise SSO</span>
             </button>
 
             <div className="divider">
               <span className="divider__line" />
-              <span className="divider__text">Or sign in with</span>
+              <span className="divider__text">Or use your work email</span>
               <span className="divider__line" />
             </div>
 
             <label className="field">
-              <span className="field__label">E-mail Id</span>
+              <span className="field__label">Work email</span>
               <div className="field__box">
                 <input
                   type="email"
@@ -113,7 +111,7 @@ export default function Login() {
               <div className="field__box">
                 <input
                   type="password"
-                  placeholder="***"
+                  placeholder="Enter your password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
@@ -144,10 +142,10 @@ export default function Login() {
 
             <div className="auth__actions">
               <button type="button" className="btn-text">
-                Forgot Password?
+                Forgot password?
               </button>
               <button type="submit" className="btn-primary">
-                Log In
+                Sign in
               </button>
             </div>
           </form>

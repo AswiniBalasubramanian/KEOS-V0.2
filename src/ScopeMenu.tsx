@@ -8,9 +8,9 @@ import { IconChevron, IconTarget, IconLocal, IconFolder, IconOrg, IconCheck } fr
 export type Scope = 'local' | 'project' | 'organization'
 
 const OPTIONS: { id: Scope; label: string; hint: string; Icon: typeof IconLocal }[] = [
-  { id: 'local', label: 'Local', hint: 'Files and chats on this device', Icon: IconLocal },
-  { id: 'project', label: 'Project', hint: 'Only the projects you select', Icon: IconFolder },
-  { id: 'organization', label: 'Organization', hint: 'Everything shared across KaarTech', Icon: IconOrg },
+  { id: 'local', label: 'Local', hint: 'Files and chats on this device only', Icon: IconLocal },
+  { id: 'project', label: 'Project', hint: 'The projects you choose', Icon: IconFolder },
+  { id: 'organization', label: 'Organization', hint: 'Everything your organization shares', Icon: IconOrg },
 ]
 
 export function scopeLabel(s: Scope) {
@@ -79,7 +79,7 @@ export default function ScopeMenu({ value, onChange }: { value: Scope; onChange:
             animate={{ opacity: 1, y: 0, scale: 1, transition: reduce ? { duration: 0 } : motionTokens.spring.smooth }}
             exit={{ opacity: 0, y: reduce ? 0 : 4, transition: { duration: motionTokens.duration.exit, ease: [...motionTokens.ease.exit] } }}
           >
-            <p className="scope__title">Search in</p>
+            <p className="scope__title">Answer from</p>
             {OPTIONS.map((o, n) => (
               <motion.button
                 key={o.id}
