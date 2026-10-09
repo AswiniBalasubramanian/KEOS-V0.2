@@ -480,12 +480,12 @@ export default function DesignLab() {
             <div className="chips">
               <button className="chip">
                 <IconScope className="chip__icon" />
-                <span>Scope: Multi Project</span>
+                <span>Scope: Multi pod</span>
                 <IconChevron className="chip__chev" />
               </button>
               <span className="chip chip--project">
                 <IconFolder className="chip__icon" />
-                <span>Sample Project…</span>
+                <span>Sample pod…</span>
                 <button className="chip__remove" aria-label="Remove">
                   <IconClose className="chip__chev" />
                 </button>

@@ -22,7 +22,7 @@ type Item =
 
 const ITEMS: Item[] = [
   { id: 'upload', label: 'Add files or photos', hint: 'From this device', Icon: IconAttach, kind: 'action' },
-  { id: 'project', label: 'Add from project', hint: 'Reuse files from your projects', Icon: IconFolder, kind: 'action' },
+  { id: 'project', label: 'Add from pod', hint: 'Reuse files from your pods', Icon: IconFolder, kind: 'action' },
   { id: 'connectors', label: 'Add connectors', hint: 'Bring in data from tools like SAP', Icon: IconPlug, kind: 'action' },
   { id: 'web', label: 'Web search', hint: 'Add live results from the web', Icon: IconGlobe, kind: 'toggle', isNew: true },
 ]

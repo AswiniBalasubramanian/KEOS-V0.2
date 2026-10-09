@@ -9,7 +9,7 @@ export type Scope = 'local' | 'project' | 'organization'
 
 const OPTIONS: { id: Scope; label: string; hint: string; Icon: typeof IconLocal }[] = [
   { id: 'local', label: 'Local', hint: 'Files and chats on this device only', Icon: IconLocal },
-  { id: 'project', label: 'Project', hint: 'The projects you choose', Icon: IconFolder },
+  { id: 'project', label: 'Pod', hint: 'The pods you choose', Icon: IconFolder },
   { id: 'organization', label: 'Organization', hint: 'Everything your organization shares', Icon: IconOrg },
 ]
 

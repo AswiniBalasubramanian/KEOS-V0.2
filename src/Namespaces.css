@@ -165,3 +165,13 @@
 :root .ns__grid--metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 @media (max-width: 760px) { :root .ns__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) { :root .ns__grid { grid-template-columns: 1fr; } }
+
+/* Loading and error states */
+:root .ns__skel td { padding: 14px; }
+:root .ns__skel span { display: block; height: 12px; width: 70%; border-radius: 6px; background: var(--active); animation: nsPulse 1.2s ease-in-out infinite; }
+:root .ns__skel .ns__check span { width: 15px; height: 15px; }
+@keyframes nsPulse { 50% { opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { :root .ns__skel span { animation: none; } }
+:root .ns__alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--danger, #d92d20); border-radius: 10px; font-size: 13px; color: var(--text-2); }
+:root .ns__alert p { margin: 0; }
+:root .ns__alert b { font-weight: 500; color: var(--danger, #d92d20); }

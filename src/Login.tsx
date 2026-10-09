@@ -26,9 +26,9 @@ export default function Login() {
 
           <div className="brand__content">
             <div className="brand__head">
-              <h1 className="brand__title">Answers from every project, in one place</h1>
+              <h1 className="brand__title">Answers from every pod, in one place</h1>
               <p className="brand__desc">
-                Search, collaborate, automate and decide with the context of your projects, connectors and documents.
+                Search, collaborate, automate and decide with the context of your pods, connectors and documents.
               </p>
             </div>
 

@@ -1044,7 +1044,8 @@ input {
 :root .pd__search:focus-within { border-color: var(--text-4); }
 
 /* ---- Running state: border beam rides the prompt box; the idle liquid-metal stroke steps aside ---- */
-:root .composer-beam { display: block; width: 100%; }
+:root .composer-beam { display: block; width: 100%; overflow: visible !important; }
+:root .composer-beam:has([role="menu"]) { z-index: 45; }
 :root .composer.is-running::before,
 :root .composer.is-running::after { opacity: 0; animation: none; }
 :root .composer.is-running { border-color: var(--border); }

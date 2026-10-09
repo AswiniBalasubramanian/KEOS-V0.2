@@ -83,7 +83,7 @@ export function buildGreeting({ now, firstName, visit, nextUpdate, unreadCount =
 
   if (visit.count <= 1) {
     title = `Welcome to KEOS, ${firstName}!`
-    lead = 'We’re glad you’re here. Ask anything about your projects to get started.'
+    lead = 'We’re glad you’re here. Ask anything about your pods to get started.'
   } else if (visit.daysSince !== null && visit.daysSince >= 2) {
     title = `Great to have you back, ${firstName}!`
     lead = `It’s been ${visit.daysSince} days. Here’s what moved while you were away.`

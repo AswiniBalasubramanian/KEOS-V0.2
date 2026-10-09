@@ -289,6 +289,14 @@ export default function Namespaces({ detail, onDetail }: Props) {
   const [picked, setPicked] = useState<string[]>([])
   const [menuOpen, setMenuOpen] = useState(false)
   const [note, setNote] = useState('')
+  const [load, setLoad] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [attempt, setAttempt] = useState(0)
+
+  useEffect(() => {
+    setLoad('loading')
+    const t = window.setTimeout(() => setLoad(navigator.onLine ? 'ready' : 'error'), 550)
+    return () => window.clearTimeout(t)
+  }, [attempt])
 
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -388,7 +396,15 @@ export default function Namespaces({ detail, onDetail }: Props) {
         </label>
       </div>
 
-      <div className="ns__tablewrap">
+      {load === 'error' && (
+        <div className="ns__alert" role="alert">
+          <p><b>Couldn’t load namespaces.</b> Check your connection, then try again.</p>
+          <Button variant="ghost" className="h-auto ns__btn" onClick={() => setAttempt((n) => n + 1)}>Try again</Button>
+        </div>
+      )}
+
+      {load !== 'error' && (
+      <div className="ns__tablewrap" aria-busy={load === 'loading'}>
         <table className="ns__table">
           <thead>
             <tr>
@@ -403,7 +419,12 @@ export default function Namespaces({ detail, onDetail }: Props) {
             </tr>
           </thead>
           <tbody>
-            {shown.map((r) => (
+            {load === 'loading' && [0, 1, 2, 3].map((n) => (
+              <tr key={`sk${n}`} className="ns__skel" aria-hidden="true">
+                <td className="ns__check"><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td><td><span /></td>
+              </tr>
+            ))}
+            {load === 'ready' && shown.map((r) => (
               <tr key={r.id} className={picked.includes(r.id) ? 'is-picked' : ''}>
                 <td className="ns__check">
                   <input type="checkbox" aria-label={`Select ${r.name}`} checked={picked.includes(r.id)} onChange={() => togglePick(r.id)} />
@@ -421,7 +442,7 @@ export default function Namespaces({ detail, onDetail }: Props) {
                 <td className="ns__num">{fmt(r.updated)}</td>
               </tr>
             ))}
-            {shown.length === 0 && (
+            {load === 'ready' && shown.length === 0 && (
               <tr>
                 <td colSpan={6} className="ns__empty">
                   No namespaces match. Clear the search or choose another status.
@@ -431,6 +452,7 @@ export default function Namespaces({ detail, onDetail }: Props) {
           </tbody>
         </table>
       </div>
+      )}
 
       <CreateDialog open={creating} existing={rows.map((r) => r.id)} onClose={() => setCreating(false)} onCreate={create} />
     </section>

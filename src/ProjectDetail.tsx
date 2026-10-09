@@ -144,7 +144,7 @@ export default function ProjectDetail() {
               <span className="pd__avatar-more">+120</span>
             </div>
             <Button variant="ghost" className="h-auto pd__btn"><IconChat /> Chat</Button>
-            <Button variant="ghost" className="h-auto pd__btn pd__btn--accent"><IconSettings /> Configure Project</Button>
+            <Button variant="ghost" className="h-auto pd__btn pd__btn--accent"><IconSettings /> Configure pod</Button>
           </div>
         </div>
         <p className="pd__subtitle">
@@ -153,7 +153,7 @@ export default function ProjectDetail() {
         </p>
 
         <Tabs value={tab} onValueChange={setTab} className="pd__tabs">
-          <TabsList aria-label="Project sections">
+          <TabsList aria-label="Pod sections">
             {TABS.map((t) => (
               <TabsTrigger key={t.id} value={t.id}>
                 {t.label}
@@ -173,8 +173,8 @@ export default function ProjectDetail() {
           <>
             <div className="pd__mem-head">
               <div>
-                <h2>Project memory</h2>
-                <p>What your agents remember about this project, shared with every agent.</p>
+                <h2>Pod memory</h2>
+                <p>What your agents remember about this pod, shared with every agent.</p>
               </div>
               <div className="pd__mem-actions">
                 <div className="pd__seg">
@@ -186,7 +186,7 @@ export default function ProjectDetail() {
                   </Button></Tip>
                 </div>
                 <Button variant="ghost" className="h-auto pd__btn pd__btn--accent pd__btn--solid">
-                  <IconExternal /> Export to projects
+                  <IconExternal /> Export to pods
                 </Button>
               </div>
             </div>

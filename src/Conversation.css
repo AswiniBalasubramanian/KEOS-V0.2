@@ -995,3 +995,30 @@
 .crumbs__link { padding: 0; border: 0; background: transparent; font: inherit; color: var(--text-3); cursor: pointer; }
 .crumbs__link:hover { color: var(--text); }
 .crumbs { gap: 8px; }
+
+/* Tool summary: smooth expand, springy chevron, shimmer while working */
+.reply__tools-chev { transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+.reply__steps { margin: -4px 0 0 7px; }
+.reply__steps li { list-style: none; }
+.reply__shimmer {
+  background: linear-gradient(90deg, var(--text-3) 0%, var(--text) 50%, var(--text-3) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: replyShimmer 1.6s linear infinite;
+}
+@keyframes replyShimmer { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+@media (prefers-reduced-motion: reduce) { .reply__shimmer { animation: none; color: var(--text); background: none; } .reply__tools-chev { transition: none; } }
+
+/* Reply error state */
+.reply__error { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 12px 14px; border: 1px solid var(--danger, #d92d20); border-radius: 10px; font-size: 14px; line-height: 1.5; color: var(--text-2); }
+.reply__error b { font-weight: 500; color: var(--danger, #d92d20); }
+.reply__error p { margin: 0; }
+.reply__retry { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text); }
+.reply__retry:hover { background: var(--hover); }
+.reply__retry svg { width: 16px; height: 16px; }
+
+/* Send becomes Stop while a reply runs */
+.composer__send.is-stop { background: var(--accent-solid); color: var(--on-accent); }
+.composer__stop { display: block; width: 10px; height: 10px; border-radius: 2px; background: currentColor; }

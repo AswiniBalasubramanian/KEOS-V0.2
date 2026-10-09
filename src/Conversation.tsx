@@ -49,7 +49,7 @@ const PREVIEW_ROWS: Row[] = [
 const statusClass = (s: Row['status']) =>
   s === 'Completed' ? 'completed' : s === 'In progress' ? 'progress' : 'open'
 
-type Msg = { id: number; role: 'user' | 'assistant'; text: string; fresh?: boolean }
+type Msg = { id: number; role: 'user' | 'assistant'; text: string; fresh?: boolean; prompt?: string }
 
 type Chat = { id: string; group: string; title: string; dot: string; fork?: boolean }
 
@@ -92,15 +92,15 @@ const INBOX_ITEMS: Note[] = [
 ]
 const NEWS_ITEMS: Note[] = [
   { id: 'n1', title: 'Ontology views are live', body: 'Namespaces, Induction, Explorer, Metrics and Playground now sit under Ontology in the sidebar.', when: 'Today', cta: { label: 'Tour the ontology views', tour: 'ontology' } },
-  { id: 'n2', title: 'Three memory graph styles', body: 'Switch the project memory graph between Classic, Minimal and Neon.', when: '2 days ago' },
+  { id: 'n2', title: 'Three memory graph styles', body: 'Switch the pod memory graph between Classic, Minimal and Neon.', when: '2 days ago' },
   { id: 'n3', title: 'CodeGenie preview', body: 'Chat and Code modes for builds are available from the Build menu.', when: '5 days ago' },
 ]
 
 const PROMPT_SAMPLES = [
-  'Summarise the key risks in the Ras Tanura turnaround schedule',
+  'Summarize the key risks in the Ras Tanura turnaround schedule',
   'Which contractors are behind on their milestones this week?',
   '@Planner build a 3-week look-ahead for the shutdown scope',
-  'Compare planned vs. actual manhours across all active projects',
+  'Compare planned vs. actual manhours across all active pods',
   'What changed in the latest revision of the scope document?',
 ]
 
@@ -131,7 +131,7 @@ const control: Item[] = [
 const VISIT = registerVisit()
 
 const ONTOLOGY_TOUR: Step[] = [
-  { target: '[data-nav="ontology-namespaces"]', title: 'Namespaces', body: 'Keep the concepts, rules and terms of each team or project in their own space.' },
+  { target: '[data-nav="ontology-namespaces"]', title: 'Namespaces', body: 'Keep the concepts, rules and terms of each team or pod in their own space.' },
   { target: '[data-nav="ontology-induction"]', title: 'Induction', body: 'Review new concepts and relationships suggested from your documents before they join the ontology.' },
   { target: '[data-nav="ontology-explorer"]', title: 'Explorer', body: 'Browse how concepts connect and follow a thread from any node.' },
   { target: '[data-nav="ontology-metrics"]', title: 'Metrics', body: 'Check how complete and how well used your ontology is.' },
@@ -140,7 +140,7 @@ const ONTOLOGY_TOUR: Step[] = [
 
 const TOUR_STEPS: Step[] = [
   { target: '[data-nav="newchat"]', title: 'Start a chat', body: 'Open a fresh conversation any time. Your earlier chats stay under All chats.' },
-  { target: '.scope .chip', title: 'Choose what I search', body: 'Scope decides where answers come from: this device, selected projects, or your whole organization.' },
+  { target: '.scope .chip', title: 'Choose where I search', body: 'Scope decides where answers come from: this device, selected pods, or your whole organization.' },
   { target: '.composer__attach', title: 'Add context', body: 'Attach files, pull in connectors, or turn on web search. Press Tab to use the suggested prompt.' },
   { target: '.chats-chip', title: 'Find past chats', body: 'All chats opens your history with search. Forked chats are marked with a branch icon.' },
   { target: '.topbar__inbox', title: 'Updates in one place', body: 'Agent results and mentions land here, with a red dot when something is new.' },
@@ -201,6 +201,8 @@ export default function Conversation() {
   const [webSearch, setWebSearch] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
   const [running, setRunning] = useState(false)
+  const [stopCount, setStopCount] = useState(0)
+  const stop = () => setStopCount((n) => n + 1)
   const canSend = !running && (input.trim().length > 0 || files.length > 0)
   const send = () => {
     const t = input.trim()
@@ -209,7 +211,7 @@ export default function Conversation() {
     setMessages((m) => [
       ...m,
       { id, role: 'user', text: t || files.map((f) => f.name).join(', ') },
-      { id: id + 1, role: 'assistant', text: '', fresh: true },
+      { id: id + 1, role: 'assistant', text: '', fresh: true, prompt: t },
     ])
     setInput('')
     setFiles([])
@@ -223,9 +225,14 @@ export default function Conversation() {
   }
 
   const onComposerKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Escape' && running) {
+      e.preventDefault()
+      stop()
+      return
+    }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      send()
+      if (!running) send()
     }
   }
 
@@ -235,7 +242,7 @@ export default function Conversation() {
   const removeProject = (i: number) =>
     setProjects((p) => p.filter((_, idx) => idx !== i))
   const addProject = () =>
-    setProjects((p) => [...p, `New project Scope ${p.length + 1}…`])
+    setProjects((p) => [...p, `New pod ${p.length + 1}…`])
 
   const [chatsOpen, setChatsOpen] = useState(false)
   const [chatQuery, setChatQuery] = useState('')
@@ -317,11 +324,12 @@ export default function Conversation() {
             </Button>
           </span>
         ))}
-        <Tip label="Add a project to your scope" side="top"><Button variant="ghost" className="h-auto chip chip--icon" aria-label="Add project scope" onClick={addProject}>
+        <Tip label="Add a pod to your scope" side="top"><Button variant="ghost" className="h-auto chip chip--icon" aria-label="Add pod to scope" onClick={addProject}>
           <IconFolderPlus className="chip__icon" />
         </Button></Tip>
       </div>
 
+      <div id="approval-slot" className="approval-slot" />
       <div className="composer-wrap">
         {showMascot && (
           <FloatingMascot
@@ -420,7 +428,7 @@ export default function Conversation() {
             webSearch={webSearch}
             onToggleWebSearch={() => setWebSearch((v) => !v)}
             onPickFiles={() => fileRef.current?.click()}
-            onUnavailable={(what) => setToast({ lead: 'Coming soon:', bold: what, sub: 'For now, add files from your device with the first option.' })}
+            onUnavailable={(what) => setToast({ lead: 'Coming soon:', bold: what, sub: 'For now, use “Add files or photos” to upload from this device.' })}
           />
           <Button variant="ghost" className="h-auto composer__smart">
             <IconSpark className="composer__smart-icon" />
@@ -435,8 +443,8 @@ export default function Conversation() {
           >
             {listening ? <ThinkingOrb state="listening" size={20} /> : <IconMic />}
           </Button></Tip>
-          <Tip label={canSend ? 'Send' : 'Type a message to send'} shortcut={canSend ? 'Enter' : undefined} side="top"><Button variant="ghost" className="h-auto composer__send" aria-label="Send" disabled={!canSend} onClick={send}>
-            <IconSend />
+          <Tip label={running ? 'Stop generating' : canSend ? 'Send' : 'Type a message to send'} shortcut={running ? 'Esc' : canSend ? 'Enter' : undefined} side="top"><Button variant="ghost" className={`h-auto composer__send${running ? ' is-stop' : ''}`} aria-label={running ? 'Stop generating' : 'Send'} disabled={!running && !canSend} onClick={running ? stop : send}>
+            {running ? <span className="composer__stop" aria-hidden="true" /> : <IconSend />}
           </Button></Tip>
         </div>
       </div>
@@ -478,7 +486,6 @@ export default function Conversation() {
             )}
             <span className="sidebar__brand">
               KEOS
-              <IconChevron className="sidebar__brand-chev" />
             </span>
           </div>
           <div className="sidebar__top-right">
@@ -526,21 +533,21 @@ export default function Conversation() {
           </Button></Tip>
 
           {/* Projects (expandable) */}
-          <Tip label="Projects" side="right" block disabled={expanded}><Button variant="ghost" 
+          <Tip label="Pods" side="right" block disabled={expanded}><Button variant="ghost" 
             data-nav="projects"
             className="h-auto nav__item"
             onClick={() => (expanded ? setProjectsOpen((v) => !v) : setExpanded(true))}
           >
             <IconProjects className="nav__icon" />
-            <span className="nav__label">Projects</span>
+            <span className="nav__label">Pods</span>
             <IconChevron
               className={`nav__chevron${projectsOpen ? ' is-open' : ''}`}
             />
           </Button></Tip>
           {expanded && projectsOpen && (
             <div className="nav__sub">
-              <Button variant="ghost" className="h-auto nav__subitem" onClick={() => setActive('project')}>All projects</Button>
-              <Button variant="ghost" className="h-auto nav__subitem">New project</Button>
+              <Button variant="ghost" className="h-auto nav__subitem" onClick={() => setActive('project')}>All pods</Button>
+              <Button variant="ghost" className="h-auto nav__subitem">New pod</Button>
             </div>
           )}
 
@@ -615,7 +622,7 @@ export default function Conversation() {
             ) : (
               <span className={`crumbs__current${active === 'codegenie' ? ' crumbs__current--accent' : ''}`}>
                 {active === 'project'
-                  ? 'All projects'
+                  ? 'All pods'
                   : active === 'codegenie'
                     ? 'CodeGenie'
                     : ONTOLOGY.find((o) => o.id === active)?.label ?? 'Chats'}
@@ -627,7 +634,7 @@ export default function Conversation() {
             <Tip label={unread ? `Updates (${unread} new)` : 'Updates'} side="bottom"><Button
               variant="ghost"
               className="h-auto topbar__inbox"
-              aria-label={unread ? `Inbox, ${unread} unread` : 'Inbox'}
+              aria-label={unread ? `Updates, ${unread} unread` : 'Updates'}
               aria-expanded={inboxOpen}
               onClick={() => setInboxOpen((v) => !v)}
             >
@@ -678,8 +685,8 @@ export default function Conversation() {
               <IconSearch className="chats__search-icon" />
               <Input
                 className="h-auto chats__search-input"
-                placeholder="Search chats or projects"
-                aria-label="Search chats or projects"
+                placeholder="Search chats or pods"
+                aria-label="Search chats or pods"
                 value={chatQuery}
                 onChange={(e) => setChatQuery(e.target.value)}
               />
@@ -723,7 +730,7 @@ export default function Conversation() {
             <div className="convo__inner">
               <span className="codegenie-code__icon"><IconOntology /></span>
               <h1 className="convo__title">{ONTOLOGY.find((o) => o.id === active)?.label}</h1>
-              <p className="convo__subtitle">This view is on its way. It will appear here as soon as it is ready.</p>
+              <p className="convo__subtitle">This page isn’t available yet. We’re still building it.</p>
             </div>
           </section>
         ) : active === 'codegenie' && codeMode === 'code' ? (
@@ -731,7 +738,7 @@ export default function Conversation() {
             <div className="convo__inner">
               <span className="codegenie-code__icon"><IconCode /></span>
               <h1 className="convo__title">Code workspace</h1>
-              <p className="convo__subtitle">Your build workspace is on its way. Soon you can turn a prompt into working code here.</p>
+              <p className="convo__subtitle">Describe what you want to build and KEOS writes the code. This workspace opens soon.</p>
             </div>
           </section>
         ) : (
@@ -756,6 +763,8 @@ export default function Conversation() {
                         onTick={() => endRef.current?.scrollIntoView({ block: 'end' })}
                         onOpenDoc={() => setPreviewOpen(true)}
                         onFollowUp={(text) => setInput(text)}
+                        prompt={m.prompt}
+                        stopSignal={stopCount}
                       />
                     ),
                   )}
@@ -796,7 +805,7 @@ export default function Conversation() {
               <span className="preview__title">Live preview</span>
               <div className="preview__tools">
                 <Button variant="ghost" className="h-auto preview__btn">
-                  <IconStar /> <span>Mark as Fav</span>
+                  <IconStar /> <span>Add to favorites</span>
                 </Button>
                 <div className="preview__toggle">
                   <Button variant="ghost" className={`h-auto ${previewView === 'table' ? 'is-active' : ''}`}
@@ -857,7 +866,7 @@ export default function Conversation() {
                   <Table className="ptable">
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Projects <IconSort className="ptable__sort" /></TableHead>
+                        <TableHead>Pods <IconSort className="ptable__sort" /></TableHead>
                         <TableHead>Status <IconSort className="ptable__sort" /></TableHead>
                         <TableHead>Start date <IconSort className="ptable__sort" /></TableHead>
                         <TableHead>Units <IconSort className="ptable__sort" /></TableHead>
@@ -898,10 +907,10 @@ export default function Conversation() {
         </>
         )}
         {inboxOpen && (
-          <aside className="inbox inbox--side" aria-label="Inbox">
+          <aside className="inbox inbox--side" aria-label="Updates">
             <div className="inbox__head">
               <span className="inbox__heading">Updates</span>
-              <Tip label="Close updates" side="bottom"><Button variant="ghost" className="h-auto inbox__close" aria-label="Close inbox" onClick={() => setInboxOpen(false)}>
+              <Tip label="Close updates" side="bottom"><Button variant="ghost" className="h-auto inbox__close" aria-label="Close updates" onClick={() => setInboxOpen(false)}>
                 <IconClose />
               </Button></Tip>
             </div>
