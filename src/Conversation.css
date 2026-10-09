@@ -1022,3 +1022,37 @@
 /* Send becomes Stop while a reply runs */
 .composer__send.is-stop { background: var(--accent-solid); color: var(--on-accent); }
 .composer__stop { display: block; width: 10px; height: 10px; border-radius: 2px; background: currentColor; }
+
+/* Queue of messages sent while a reply is running */
+.queue { width: 100%; margin-bottom: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); }
+.queue:not(:has(.queue__list)) { padding: 0; border: 0; background: transparent; margin: 0; }
+.queue__head { display: flex; align-items: center; gap: 12px; padding: 2px 4px 6px; font-size: 12px; font-weight: 500; color: var(--text-3); }
+.queue__head span { flex: 1; }
+.queue__link { padding: 0 4px; font-size: 12px; font-weight: 500; color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; }
+.queue__link:hover { color: var(--text); }
+.queue__list { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.queue__item { display: flex; align-items: center; gap: 8px; padding: 4px 4px 4px 6px; border-radius: 8px; animation: viewIn 200ms var(--ease) both; }
+.queue__item:hover { background: var(--hover); }
+.queue__n { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--active); font-size: 12px; font-weight: 500; color: var(--text-2); }
+.queue__t { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; color: var(--text); }
+.queue__act { display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 6px; color: var(--text-3); }
+.queue__act:hover { background: var(--active); color: var(--text); }
+.queue__act svg { width: 14px; height: 14px; }
+.queue__note { margin: 4px 4px 2px; font-size: 12px; color: var(--text-3); }
+
+/* Starter prompts on the welcome screen */
+.starters { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.starter { padding: 6px 12px; border: 1px solid var(--border); border-radius: 999px; background: transparent; font: inherit; font-size: 13px; color: var(--text-2); cursor: pointer; transition: border-color 160ms var(--ease), background-color 160ms var(--ease), color 160ms var(--ease); }
+.starter:hover { border-color: var(--border-strong); background: var(--hover); color: var(--text); }
+
+/* Edit a sent message */
+.msg--user { position: relative; align-items: center; gap: 6px; }
+.msg__edit { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border-radius: 8px; color: var(--text-3); opacity: 0; transition: opacity 160ms var(--ease); }
+.msg--user:hover .msg__edit, .msg__edit:focus-visible { opacity: 1; }
+.msg__edit:hover:not(:disabled) { background: var(--active); color: var(--text); }
+.msg__edit svg { width: 16px; height: 16px; }
+@media (hover: none) { .msg__edit { opacity: 1; } }
+
+/* Drop files onto the prompt box */
+.composer.is-drop { border-style: dashed; border-color: var(--text-4); }
+.composer__drop { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; border-radius: inherit; background: var(--bg-elevated); font-size: 14px; color: var(--text-2); }

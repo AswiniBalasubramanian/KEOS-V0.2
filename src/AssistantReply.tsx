@@ -5,6 +5,8 @@ import { ThinkingOrb } from 'thinking-orbs'
 import { Button } from '@/components/ui/button'
 import { Cite, CitationsProvider, SourceList } from './Citations'
 import type { Source } from './Citations'
+import { TableBlock, ChartBlock, CodeBlock, TABLE_CSV, CODE_TEXT } from './OutputBlocks'
+import type { Stage } from './OutputBlocks'
 import {
   IconChevron, IconFile, IconDownload, IconCopy, IconCheck,
   IconRefresh, IconShare, IconSearch, IconGlobe, IconThumbUp, IconThumbDown, IconFollow,
@@ -86,7 +88,6 @@ const STEP_ORB: OrbState[] = ['listening', 'searching', 'solving', 'shaping']
 
 const REASONING_TEXT =
   'Reading your scope and sources first. The brief describes an analytics and reporting SaaS platform that is in MVP, so the PRD should stay inside that scope. I will check pod memory for the scope freeze, look at the open risks, and then draft sections the team can act on.'
-const RW = REASONING_TEXT.split(' ')
 
 const INTRO = [
   'Done!', 'I’ve', 'created', 'a', 'comprehensive', 'PRD', 'for', 'Acme,', 'an', 'analytics',
@@ -147,6 +148,38 @@ const FOLLOW_UPS = [
   'List the top risks by severity',
 ]
 
+type Kind = 'doc' | 'table' | 'chart' | 'code'
+const detectKind = (p: string): Kind =>
+  /\b(code|script|function|sql|python|snippet)\b/i.test(p) ? 'code'
+  : /\b(chart|graph|plot|trend|manhours|vs\.?|versus)\b/i.test(p) ? 'chart'
+  : /\b(table|compare|which|list|rank|contractors|behind)\b/i.test(p) ? 'table'
+  : 'doc'
+
+type Content = {
+  sources: Source[]
+  intro: string[]
+  citeAfter: Record<number, number>
+  reasoning: string
+  steps: { verb: string; code: string }[]
+  followUps: string[]
+  closing: string
+  closingAlt: string
+  blockTicks: number
+  total: number
+}
+
+const SOURCES_TABLE: Source[] = [
+  { n: 1, title: 'milestones/week-41.xlsx', publisher: 'Contractor tracker', kind: 'file', updated: '8 Oct 2026', claim: 'four contractors are behind plan', snippet: 'Four of nine contractor packages report a milestone slip this week. The largest slip is the E-1104 bundle delivery at nine days.', quality: { label: 'Primary document', tone: 'strong' } },
+  { n: 2, title: 'Weekly progress report', publisher: 'Jubail inspections', kind: 'folder', updated: '1 Oct 2026', claim: 'lowest progress is on the E-1104 bundle', snippet: 'E-1104 bundle delivery is at 52% against an 80% plan after the supplier slipped its dispatch date.', quality: { label: 'Older, check before use', tone: 'medium' } },
+]
+const SOURCES_CHART: Source[] = [
+  { n: 1, title: 'manhours/ledger.csv', publisher: 'Manhours ledger', kind: 'file', updated: '8 Oct 2026', claim: 'actual hours ran above plan from week 3', snippet: 'Actual hours exceeded the baseline in every week from W3 to W7, peaking at 78k in W5 against a plan of 60k.', quality: { label: 'Primary document', tone: 'strong' } },
+  { n: 2, title: 'Planning baseline v3', publisher: 'Pod memory', kind: 'memory', updated: '2 Oct 2026', claim: 'burn has eased since', snippet: 'Baseline v3 assumes a 60k peak in W4 and W5, then a steady fall as scaffold and insulation packages close.', quality: { label: 'Team decision', tone: 'strong' } },
+]
+const SOURCES_CODE: Source[] = [
+  { n: 1, title: 'docs/api/export.md', publisher: 'Engineering docs', kind: 'file', updated: '29 Sep 2026', claim: 'the table can be exported as CSV', snippet: 'Exports use the standard csv module with a header row. Pass the destination path as the first argument.', quality: { label: 'Primary document', tone: 'strong' } },
+]
+
 type Props = {
   logo: string
   sections: string[]
@@ -157,11 +190,18 @@ type Props = {
   onFollowUp: (text: string) => void
   prompt?: string
   stopSignal?: number
+  context?: string[]
 }
 
 type Phase = 'thinking' | 'awaiting' | 'streaming' | 'done' | 'error' | 'denied' | 'stopped'
 
-export default function AssistantReply({ logo, sections, fresh, onDone, onTick, onOpenDoc, onFollowUp, prompt = '', stopSignal = 0 }: Props) {
+export default function AssistantReply({ logo, sections, fresh, onDone, onTick, onOpenDoc, onFollowUp, prompt = '', stopSignal = 0, context }: Props) {
+  const kind = useMemo(() => detectKind(prompt), [prompt])
+  const C = CONTENT[kind]
+  const RWk = useMemo(() => C.reasoning.split(' '), [C])
+  const [blockFailed, setBlockFailed] = useState(false)
+  const [vCount, setVCount] = useState(1)
+  const [viewV, setViewV] = useState(1)
   const reduce = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)').matches, [])
   const [run, setRun] = useState(0)
   const [phase, setPhase] = useState<Phase>(fresh ? 'thinking' : 'done')
@@ -201,13 +241,20 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
       n += 1
       setT(n)
       tickRef.current()
-      if (n >= TOTAL_TICKS) {
+      if (kind !== 'doc' && n === C.intro.length + 2 + 12 && !navigator.onLine) {
+        window.clearInterval(tickerRef.current)
+        setBlockFailed(true)
+        setPhase('done')
+        doneRef.current()
+        return
+      }
+      if (n >= C.total) {
         window.clearInterval(tickerRef.current)
         setPhase('done')
         doneRef.current()
       }
     }, 45)
-  }, [])
+  }, [C, kind])
 
   // Timeline: thinking (rotating reasoning steps) -> [needs your input] -> streaming -> done
   useEffect(() => {
@@ -216,6 +263,7 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
     setStep(0)
     setT(0)
     setRWords(0)
+    setBlockFailed(false)
     setThinkOpen(true)
     setThoughtSecs(0)
     setSourcesOpen(false)
@@ -246,10 +294,10 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
   // Reasoning streams in word by word, then folds into "Thought for Ns"
   useEffect(() => {
     if (phase !== 'thinking') return
-    if (reduce) { setRWords(RW.length); return }
-    const id = window.setInterval(() => setRWords((n) => Math.min(RW.length, n + 1)), 72)
+    if (reduce) { setRWords(RWk.length); return }
+    const id = window.setInterval(() => setRWords((n) => Math.min(RWk.length, n + 1)), 72)
     return () => window.clearInterval(id)
-  }, [phase, reduce, run])
+  }, [phase, reduce, run, RWk])
 
   useEffect(() => {
     if (prevPhase.current === 'thinking' && phase !== 'thinking' && phase !== 'error') {
@@ -309,27 +357,27 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
   const announce =
     phase === 'thinking' ? 'KEOS is thinking.'
     : phase === 'awaiting' ? 'KEOS needs your input to continue.'
-    : phase === 'done' && fresh ? 'Reply complete. ' + SOURCES.length + ' sources.'
+    : phase === 'done' && fresh ? 'Reply complete. ' + C.sources.length + ' sources.'
     : phase === 'stopped' ? 'Generation stopped.'
     : phase === 'denied' ? 'Action denied. Nothing was changed.'
     : ''
 
   const loading = phase === 'thinking' || phase === 'streaming' || phase === 'awaiting'
   // Block schedule (in ticks): intro words first, then blocks every 3 ticks
-  const W = INTRO.length
+  const W = C.intro.length
   const at = (i: number) => W + 2 + i * 3
   const show = (i: number) => t >= at(i)
   const wordsShown = Math.min(W, t)
 
   const copy = useCallback(() => {
-    const text = `Done! I’ve created a comprehensive PRD for Acme.\n\n${sections.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
+    const text = kind === 'table' ? TABLE_CSV : kind === 'code' ? CODE_TEXT : kind === 'chart' ? C.intro.join(' ') : `Done! I’ve created a comprehensive PRD for Acme.\n\n${sections.map((s, i) => `${i + 1}. ${s}`).join('\n')}`
     navigator.clipboard?.writeText(text).catch(() => {})
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1600)
-  }, [sections])
+  }, [sections, kind, C])
 
   return (
-    <CitationsProvider sources={SOURCES} onReveal={reveal}>
+    <CitationsProvider sources={C.sources} onReveal={reveal}>
     <div className="msg msg--assistant" aria-busy={loading && phase !== 'awaiting'}>
       <div className="sr-only" role="status" aria-live="polite">{announce}</div>
       {phase === 'thinking' && step === 0 ? <LogoLoader src={logo} className="reply__avatar reply__avatar--loading" /> : (phase === 'thinking' || phase === 'streaming') ? <span className="reply__avatar reply__avatar--loading reply__avatar--orb" role="presentation" aria-hidden="true"><ThinkingOrb key={phase + step} state={phase === 'thinking' ? STEP_ORB[step] : 'composing'} size={20} paused={reduce} /></span> : <img className="reply__avatar" src={logo} alt="" aria-hidden />}
@@ -350,11 +398,11 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
                   exit={reduce ? { opacity: 0 } : { height: 0, opacity: 0 }}
                   transition={{ duration: reduce ? 0.12 : 0.26, ease: [0.22, 1, 0.36, 1] }}
                 >
-                  <p>{phase === 'thinking' ? RW.slice(0, rWords).join(' ') : REASONING_TEXT}{phase === 'thinking' && rWords < RW.length && <span className="reply__caret" aria-hidden />}</p>
+                  <p>{phase === 'thinking' ? RWk.slice(0, rWords).join(' ') : C.reasoning}{phase === 'thinking' && rWords < RWk.length && <span className="reply__caret" aria-hidden />}</p>
                   {phase !== 'thinking' && (
                     <ul className="think__steps">
-                      <li><IconSearch /> Searched {SOURCES.length} sources</li>
-                      {STEPS.map((st) => <li key={st.code}><IconCheck /> {st.verb} <code>{st.code}</code></li>)}
+                      <li><IconSearch /> Searched {C.sources.length} sources</li>
+                      {C.steps.map((st) => <li key={st.code}><IconCheck /> {st.verb} <code>{st.code}</code></li>)}
                     </ul>
                   )}
                 </motion.div>
@@ -367,15 +415,17 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
           <>
 
             <p className="reply__p">
-              {INTRO.slice(0, wordsShown).map((w, i) => (
+              {C.intro.slice(0, wordsShown).map((w, i) => (
                 <span key={i} className="reply__word">
                   {w}
-                  {CITE_AFTER[i + 1] && <Cite n={CITE_AFTER[i + 1]} />}{' '}
+                  {C.citeAfter[i + 1] && <Cite n={C.citeAfter[i + 1]} />}{' '}
                 </span>
               ))}
               {phase === 'streaming' && wordsShown < W && <span className="reply__caret" aria-hidden />}
             </p>
 
+            {kind === 'doc' && (
+              <>
             {show(0) && <h2 className="reply__h reply__in">What&rsquo;s included:</h2>}
             {show(1) && (
               <p className="reply__note reply__in">
@@ -410,6 +460,22 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
               </div>
             )}
 
+              </>
+            )}
+
+            {kind !== 'doc' && t >= W + 2 && (() => {
+              const bt = t - (W + 2)
+              const stage: Stage = blockFailed ? 'error' : bt < 12 ? 'skeleton' : 'ready'
+              const progress = phase === 'done' && !blockFailed ? 1 : bt < 12 ? 0 : Math.min(1, (bt - 12) / C.blockTicks)
+              const Block = kind === 'table' ? TableBlock : kind === 'chart' ? ChartBlock : CodeBlock
+              return (
+                <>
+                  <div className="reply__in"><Block stage={stage} progress={progress} onRetry={() => setRun((r) => r + 1)} /></div>
+                  {stage === 'ready' && progress >= 1 && <p key={viewV} className="reply__p reply__in">{viewV % 2 === 0 ? C.closingAlt : C.closing}</p>}
+                </>
+              )
+            })()}
+
             {phase === 'streaming' && <span className="reply__streaming" role="status" aria-live="polite"><span className="reply__shimmer">Writing</span></span>}
           </>
         )}
@@ -436,6 +502,13 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
           </>
         )}
 
+        {phase === 'done' && vCount > 1 && viewV < vCount && (
+          <div className="reply__stopped reply__in" role="status">
+            <p><b>Earlier version.</b> You are viewing version {viewV} of {vCount}.</p>
+            <Button variant="ghost" className="h-auto reply__retry" onClick={() => setViewV(vCount)}>Back to latest</Button>
+          </div>
+        )}
+
         {phase === 'denied' && (
           <div className="reply__stopped" role="status">
             <p><b>Action denied.</b> Nothing was changed.</p>
@@ -459,7 +532,9 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
 
         {phase === 'done' && (
           <>
-            {sourcesOpen && <SourceList sources={SOURCES} expandedN={expandedN} onToggle={(n) => setExpandedN((c) => (c === n ? null : n))} />}
+            {sourcesOpen && <SourceList sources={C.sources} expandedN={expandedN} onToggle={(n) => setExpandedN((c) => (c === n ? null : n))} />}
+
+            <p className="reply__context reply__in"><span>Context used</span> {(context && context.length ? context : ['Scope: Pod']).join(' · ')}</p>
 
             <div className="reply__actions reply__in" role="group" aria-label="Reply actions">
               <Tip label={copied ? 'Copied' : 'Copy'} side="top"><Button variant="ghost" className="h-auto reply__act" aria-label={copied ? 'Copied' : 'Copy reply'} onClick={copy}>
@@ -471,20 +546,27 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
               <Tip label="Poor reply" side="top"><Button variant="ghost" className={`h-auto reply__act${vote === 'down' ? ' is-on' : ''}`} aria-label="Poor reply" aria-pressed={vote === 'down'} onClick={() => setVote((v) => (v === 'down' ? null : 'down'))}>
                 <IconThumbDown />
               </Button></Tip>
-              <Tip label="Regenerate" side="top"><Button variant="ghost" className="h-auto reply__act" aria-label="Regenerate reply" onClick={() => setRun((r) => r + 1)}>
+              <Tip label="Regenerate" side="top"><Button variant="ghost" className="h-auto reply__act" aria-label="Regenerate reply" onClick={() => { setVCount((c) => c + 1); setViewV(vCount + 1); setRun((r) => r + 1) }}>
                 <IconRefresh />
               </Button></Tip>
               <Tip label="Share" side="top"><Button variant="ghost" className="h-auto reply__act" aria-label="Share reply">
                 <IconShare />
               </Button></Tip>
               <Button variant="ghost" className={'h-auto reply__act reply__act--text' + (sourcesOpen ? ' is-on' : '')} aria-expanded={sourcesOpen} onClick={() => setSourcesOpen((v) => !v)}>
-                <IconGlobe /> {SOURCES.length} sources
+                <IconGlobe /> {C.sources.length} sources
               </Button>
+              {vCount > 1 && (
+                <span className="reply__pager" role="group" aria-label="Answer versions">
+                  <Button variant="ghost" className="h-auto reply__act" aria-label="Previous version" disabled={viewV <= 1} onClick={() => setViewV((v) => Math.max(1, v - 1))}><IconChevron className="reply__pager-prev" /></Button>
+                  <span aria-live="polite">{viewV} / {vCount}</span>
+                  <Button variant="ghost" className="h-auto reply__act" aria-label="Next version" disabled={viewV >= vCount} onClick={() => setViewV((v) => Math.min(vCount, v + 1))}><IconChevron className="reply__pager-next" /></Button>
+                </span>
+              )}
               <span className="reply__model">Atlas</span>
             </div>
 
             <div className="reply__followups reply__in" aria-label="Follow-up actions">
-              {FOLLOW_UPS.map((f) => (
+              {C.followUps.map((f) => (
                 <button key={f} type="button" className="followup" onClick={() => onFollowUp(f)}>
                   <IconFollow className="followup__i" />
                   <span>{f}</span>
@@ -502,3 +584,55 @@ export default function AssistantReply({ logo, sections, fresh, onDone, onTick, 
 /* Total streaming ticks: intro words + gap + blocks + list items + tail blocks. */
 const LIST_COUNT = 10
 const TOTAL_TICKS = INTRO.length + 2 + 2 * 3 + LIST_COUNT * 2 + 3 * 3 + 6
+
+
+const CONTENT: Record<Kind, Content> = {
+  doc: {
+    sources: SOURCES,
+    intro: INTRO,
+    citeAfter: CITE_AFTER,
+    reasoning: REASONING_TEXT,
+    steps: STEPS,
+    followUps: FOLLOW_UPS,
+    closing: '',
+    closingAlt: '',
+    blockTicks: 0,
+    total: TOTAL_TICKS,
+  },
+  table: {
+    sources: SOURCES_TABLE,
+    intro: ['Four', 'contractors', 'are', 'behind', 'plan', 'this', 'week.', 'The', 'lowest', 'progress', 'is', 'on', 'the', 'E-1104', 'bundle.'],
+    citeAfter: { 7: 1, 15: 2 },
+    reasoning: 'Reading the contractor milestones for this week first. I will compare each package against its plan, count the days late, and rank the contractors so the biggest slips come first. Then I will flag who is at risk but not yet behind.',
+    steps: [{ verb: 'Read', code: 'milestones/week-41.xlsx' }, { verb: 'Ran', code: 'filter --status behind' }, { verb: 'Ranked', code: 'by days late' }],
+    followUps: ['Draft a nudge to the four contractors', 'Show only the packages at risk', 'Compare with last week'],
+    closingAlt: 'Gulf Piping Co. is nine days late, the most of any contractor. Start there, then work down the list. Download the table if you want to share it.',
+    closing: 'Gulf Piping Co. is the biggest slip at nine days late. Sort any column, filter by name, or download the table as a CSV.',
+    blockTicks: 22,
+    total: 15 + 2 + 12 + 22 + 8,
+  },
+  chart: {
+    sources: SOURCES_CHART,
+    intro: ['Actual', 'manhours', 'ran', 'above', 'plan', 'from', 'week', '3,', 'peaking', 'in', 'week', '5.', 'Burn', 'has', 'eased', 'since.'],
+    citeAfter: { 12: 1, 16: 2 },
+    reasoning: 'Reading the manhours ledger first. I will total the hours by week, line them up against the planning baseline, and look for where the two lines part. A chart with a table view suits this best, so each week can be read exactly.',
+    steps: [{ verb: 'Read', code: 'manhours/ledger.csv' }, { verb: 'Ran', code: 'aggregate --by week' }, { verb: 'Built', code: 'bar and line views' }],
+    followUps: ['Break the overrun down by contractor', 'Forecast the next four weeks', 'Show cost instead of hours'],
+    closingAlt: 'The gap is widest in week 5. Check each week in the Table view, or copy the data to compare it elsewhere.',
+    closing: 'Hover or focus a week to read its exact values. Switch to Table for the numbers, or copy the data as CSV.',
+    blockTicks: 14,
+    total: 16 + 2 + 12 + 14 + 8,
+  },
+  code: {
+    sources: SOURCES_CODE,
+    intro: ['Here’s', 'a', 'script', 'that', 'exports', 'the', 'table', 'to', 'CSV.'],
+    citeAfter: { 9: 1 },
+    reasoning: 'Reading the export notes first. The table needs a header row and one line per package, so the standard csv module is enough and adds no dependency. I will keep the script short and take the file path as an argument.',
+    steps: [{ verb: 'Read', code: 'docs/api/export.md' }, { verb: 'Wrote', code: 'export_table.py' }],
+    followUps: ['Add error handling for a missing path', 'Write a test for it', 'Export to Excel instead'],
+    closingAlt: 'Pass the output path when you run it. The script writes a header row first, then one line per package.',
+    closing: 'Run it with the destination path, for example python export_table.py out.csv. Copy the code with the button above.',
+    blockTicks: 28,
+    total: 9 + 2 + 12 + 28 + 8,
+  },
+}

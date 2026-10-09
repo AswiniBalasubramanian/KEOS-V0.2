@@ -6,6 +6,7 @@ import { buildGreeting, registerVisit } from './greeting'
 import ScopeMenu from './ScopeMenu'
 import AttachMenu from './AttachMenu'
 import type { Scope } from './ScopeMenu'
+import { scopeLabel } from './ScopeMenu'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
 import { useEffect, useRef, useState } from 'react'
@@ -29,7 +30,7 @@ import {
   IconNewChat, IconProjects, IconAgent, IconWorkflow, IconMarket,
   IconResearch, IconApps, IconAdmin, IconSettings, IconPanel, IconChevron,
   IconSearch, IconBell, IconMic, IconSend, IconFolderPlus,
-  IconSpark, IconSun, IconMoon, IconClose, IconFolder, IconSliders, IconChat, IconFork,
+  IconSpark, IconSun, IconMoon, IconClose, IconEdit, IconFolder, IconSliders, IconChat, IconFork,
   IconStar, IconGrid, IconBars, IconDownload, IconShare, IconSort, IconFile, IconRecords, IconClock,
   IconPalette, IconCode, IconOntology, IconInbox, IconGlobe, IconRoute,
 } from './icons'
@@ -49,7 +50,7 @@ const PREVIEW_ROWS: Row[] = [
 const statusClass = (s: Row['status']) =>
   s === 'Completed' ? 'completed' : s === 'In progress' ? 'progress' : 'open'
 
-type Msg = { id: number; role: 'user' | 'assistant'; text: string; fresh?: boolean; prompt?: string }
+type Msg = { id: number; role: 'user' | 'assistant'; text: string; fresh?: boolean; prompt?: string; context?: string[] }
 
 type Chat = { id: string; group: string; title: string; dot: string; fork?: boolean }
 
@@ -130,6 +131,12 @@ const control: Item[] = [
 
 const VISIT = registerVisit()
 
+const STARTERS = [
+  'Which contractors are behind this week?',
+  'Chart planned vs. actual manhours',
+  'Write a script to export the table',
+]
+
 const ONTOLOGY_TOUR: Step[] = [
   { target: '[data-nav="ontology-namespaces"]', title: 'Namespaces', body: 'Keep the concepts, rules and terms of each team or pod in their own space.' },
   { target: '[data-nav="ontology-induction"]', title: 'Induction', body: 'Review new concepts and relationships suggested from your documents before they join the ontology.' },
@@ -202,26 +209,84 @@ export default function Conversation() {
   const fileRef = useRef<HTMLInputElement>(null)
   const [running, setRunning] = useState(false)
   const [stopCount, setStopCount] = useState(0)
-  const stop = () => setStopCount((n) => n + 1)
   const canSend = !running && (input.trim().length > 0 || files.length > 0)
-  const send = () => {
-    const t = input.trim()
-    if (!t && files.length === 0) return
+  type Queued = { id: number; text: string; ctx: string[] }
+  const [dropping, setDropping] = useState(false)
+  /* What this message will use: shown back under the reply so nothing is hidden */
+  const ctxNow = (): string[] => [
+    'Scope: ' + scopeLabel(scope),
+    ...(scope === 'project' ? projects.map((p) => p.replace(/…$/, '')) : []),
+    ...(files.length ? [files.length === 1 ? files[0].name : files.length + ' files'] : []),
+    ...(webSearch ? ['Web search'] : []),
+  ]
+  const [queue, setQueue] = useState<Queued[]>([])
+  const [queuePaused, setQueuePaused] = useState(false)
+  const [queueNote, setQueueNote] = useState('')
+  const stop = () => { setQueuePaused(true); setStopCount((n) => n + 1) }
+  const submit = (t: string, ctx: string[]) => {
     const id = Date.now()
     setMessages((m) => [
       ...m,
-      { id, role: 'user', text: t || files.map((f) => f.name).join(', ') },
-      { id: id + 1, role: 'assistant', text: '', fresh: true, prompt: t },
+      { id, role: 'user', text: t },
+      { id: id + 1, role: 'assistant', text: '', fresh: true, prompt: t, context: ctx },
     ])
-    setInput('')
-    setFiles([])
     // Running state: the prompt box shows the beam until the reply finishes streaming
     setRunning(true)
     // Document prompts open the Live preview panel (slides in after "generating")
-    if (/\b(pdf|docx?|document|prd|report|dashboard|preview|table)\b/i.test(t)) {
+    if (/\b(pdf|docx?|document|prd|report|dashboard|preview)\b/i.test(t)) {
       setChatsOpen(false)
       window.setTimeout(() => setPreviewOpen(true), 650)
     }
+  }
+
+  const send = () => {
+    const t = input.trim()
+    if (!t && files.length === 0) return
+    const text = t || files.map((f) => f.name).join(', ')
+    if (running) {
+      // A reply is still running: keep the message in a visible queue instead of dropping it
+      setQueue((q) => [...q, { id: Date.now(), text, ctx: ctxNow() }])
+      setQueueNote('Queued. KEOS will send it when the current reply finishes.')
+      setInput('')
+      setFiles([])
+      return
+    }
+    const ctx = ctxNow()
+    setInput('')
+    setFiles([])
+    submit(text, ctx)
+  }
+
+  // Send the next queued message once the current reply is done
+  useEffect(() => {
+    if (running || queuePaused || queue.length === 0) return
+    const id = window.setTimeout(() => {
+      const [next, ...rest] = queue
+      setQueue(rest)
+      setQueueNote(rest.length ? 'Sent a queued message.' : 'Queue is empty.')
+      submit(next.text, next.ctx)
+    }, 500)
+    return () => window.clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [running, queuePaused, queue])
+
+  const editQueued = (q: Queued) => {
+    setQueue((cur) => cur.filter((x) => x.id !== q.id))
+    setInput(q.text)
+    requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('.composer__input')?.focus())
+  }
+  const sendNow = (q: Queued) => {
+    setQueue((cur) => [q, ...cur.filter((x) => x.id !== q.id)])
+    setQueuePaused(false)
+    setStopCount((n) => n + 1)
+  }
+
+  const editMessage = (id: number) => {
+    const i = messages.findIndex((m) => m.id === id)
+    if (i < 0 || running) return
+    setInput(messages[i].text)
+    setMessages(messages.slice(0, i))
+    requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('.composer__input')?.focus())
   }
 
   const onComposerKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -232,7 +297,7 @@ export default function Conversation() {
     }
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if (!running) send()
+      send()
     }
   }
 
@@ -329,6 +394,32 @@ export default function Conversation() {
         </Button></Tip>
       </div>
 
+      {(queue.length > 0 || queueNote) && (
+        <div className="queue" role="region" aria-label="Queued messages">
+          {queue.length > 0 && (
+            <>
+              <div className="queue__head">
+                <span>{queuePaused ? 'Queue paused · ' + queue.length : 'Queued · ' + queue.length}</span>
+                {queuePaused && <Button variant="ghost" className="h-auto queue__link" onClick={() => setQueuePaused(false)}>Resume</Button>}
+                <Button variant="ghost" className="h-auto queue__link" onClick={() => { setQueue([]); setQueueNote('Queue cleared.') }}>Clear all</Button>
+              </div>
+              <ol className="queue__list">
+                {queue.map((q, i) => (
+                  <li key={q.id} className="queue__item">
+                    <span className="queue__n">{i + 1}</span>
+                    <span className="queue__t">{q.text}</span>
+                    <Tip label="Send now" side="top"><Button variant="ghost" className="h-auto queue__act" aria-label={'Send queued message ' + (i + 1) + ' now'} onClick={() => sendNow(q)}><IconSend /></Button></Tip>
+                    <Tip label="Edit" side="top"><Button variant="ghost" className="h-auto queue__act" aria-label={'Edit queued message ' + (i + 1)} onClick={() => editQueued(q)}><IconEdit /></Button></Tip>
+                    <Tip label="Remove" side="top"><Button variant="ghost" className="h-auto queue__act" aria-label={'Remove queued message ' + (i + 1)} onClick={() => { setQueue((cur) => cur.filter((x) => x.id !== q.id)); setQueueNote('Removed from the queue.') }}><IconClose /></Button></Tip>
+                  </li>
+                ))}
+              </ol>
+              {queuePaused && <p className="queue__note">Paused because you stopped the reply. Resume to send these.</p>}
+            </>
+          )}
+          <p className="sr-only" role="status" aria-live="polite">{queueNote}</p>
+        </div>
+      )}
       <div id="approval-slot" className="approval-slot" />
       <div className="composer-wrap">
         {showMascot && (
@@ -355,8 +446,16 @@ export default function Conversation() {
         className="composer-beam"
       >
       <div
-        className={`composer${input.trim() ? ' is-typing' : ''}${running ? ' is-running' : ''}`}
+        className={`composer${input.trim() ? ' is-typing' : ''}${running ? ' is-running' : ''}${dropping ? ' is-drop' : ''}`}
         aria-busy={running}
+        onDragOver={(e) => { if (e.dataTransfer.types.includes('Files')) { e.preventDefault(); setDropping(true) } }}
+        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDropping(false) }}
+        onDrop={(e) => {
+          e.preventDefault()
+          setDropping(false)
+          const dropped = Array.from(e.dataTransfer.files)
+          if (dropped.length) setFiles((p) => [...p, ...dropped])
+        }}
         onPointerMove={(e) => {
           const r = e.currentTarget.getBoundingClientRect()
           e.currentTarget.style.setProperty('--mx', `${e.clientX - r.left}px`)
@@ -367,6 +466,7 @@ export default function Conversation() {
           e.currentTarget.style.removeProperty('--my')
         }}
       >
+        {dropping && <div className="composer__drop" role="status">Drop files to add them to this message</div>}
         <div className="composer__field">
           <Textarea
             className="min-h-0 [field-sizing:fixed] composer__input"
@@ -374,6 +474,10 @@ export default function Conversation() {
             rows={2}
             value={input}
             onChange={(e) => setInput(e.target.value)}
+            onPaste={(e) => {
+              const pasted = Array.from(e.clipboardData.files)
+              if (pasted.length) { e.preventDefault(); setFiles((p) => [...p, ...pasted]) }
+            }}
             onKeyDown={(e) => {
               if (e.key === 'Tab' && !input && !e.shiftKey) {
                 e.preventDefault()
@@ -383,7 +487,10 @@ export default function Conversation() {
               onComposerKey(e)
             }}
           />
-          {!input && (
+          {!input && running && (
+            <span className="composer__ph" aria-hidden="true">Type to queue your next message<kbd className="composer__ph-key">Enter</kbd></span>
+          )}
+          {!input && !running && (
             <span key={sampleIdx} className="composer__ph" aria-hidden="true">
               {PROMPT_SAMPLES[sampleIdx]}
               <kbd className="composer__ph-key">Tab</kbd>
@@ -751,6 +858,7 @@ export default function Conversation() {
                   {messages.map((m) =>
                     m.role === 'user' ? (
                       <div key={m.id} className="msg msg--user">
+                        <Tip label={running ? 'Wait for the reply to finish' : 'Edit message'} side="left"><Button variant="ghost" className="h-auto msg__edit" aria-label="Edit message" disabled={running} onClick={() => editMessage(m.id)}><IconEdit /></Button></Tip>
                         <div className="bubble">{renderPrompt(m.text)}</div>
                       </div>
                     ) : (
@@ -764,6 +872,7 @@ export default function Conversation() {
                         onOpenDoc={() => setPreviewOpen(true)}
                         onFollowUp={(text) => setInput(text)}
                         prompt={m.prompt}
+                        context={m.context}
                         stopSignal={stopCount}
                       />
                     ),
@@ -788,6 +897,13 @@ export default function Conversation() {
               </p>
               <div className="dock dock--hero">
                 {composerBlock}
+                {active !== 'codegenie' && (
+                  <div className="starters" role="group" aria-label="Try one of these">
+                    {STARTERS.map((st) => (
+                      <button key={st} type="button" className="starter" onClick={() => { setInput(st); requestAnimationFrame(() => document.querySelector<HTMLTextAreaElement>('.composer__input')?.focus()) }}>{st}</button>
+                    ))}
+                  </div>
+                )}
                 {active !== 'codegenie' && (
                   <button type="button" className="convo__next" onClick={() => setInboxOpen(true)} aria-label={`${greeting.next} Open updates.`}>
                     <IconInbox className="convo__next-icon" />
