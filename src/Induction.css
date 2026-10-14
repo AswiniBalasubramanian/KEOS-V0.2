@@ -109,7 +109,7 @@
 
 
 /* Spherical graph canvas */
-:root .ind__canvas { position: relative; height: 440px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #f6f6f7; }
+:root .ind__canvas { position: relative; height: min(72vh, 640px); min-height: 440px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: #f6f6f7; }
 :root[data-theme='dark'] .ind__canvas { background: #131318; }
 :root .ind__canvas.is-big { height: min(62vh, 560px); }
 :root .ind__sphere { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
@@ -142,3 +142,5 @@
 :root .ind__detail li b { font-weight: 500; }
 :root .ind__detail li span { color: var(--text-3); }
 :root .ind__detail .ind__more { color: var(--text-3); }
+:root .ind__detail--side { position: static; width: auto; max-height: none; box-shadow: none; }
+:root .ind__graph { grid-template-columns: minmax(0, 1fr) 240px; }

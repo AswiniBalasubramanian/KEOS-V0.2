@@ -67,9 +67,13 @@ type Props = {
   selected: string | null
   onSelect: (key: string | null) => void
   big?: boolean
+  /** When given, the picked dot is handed to the parent to show its details, instead of a card on the graph. */
+  onPick?: (n: PickedNode | null) => void
 }
 
-export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props) {
+export type PickedNode = N
+
+export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const sig = hubs.map((h) => h.key + h.name + h.rel + h.attrs).join('|')
@@ -82,6 +86,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
   const [tip, setTip] = useState<N | null>(null)
   const [zoomUi, setZoomUi] = useState(1)
   const [picked, setPicked] = useState<N | null>(null)
+  useEffect(() => { onPick?.(picked) }, [picked]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const st = useRef({
     yaw: 0.5, pitch: -0.25, vyaw: 0, vpitch: 0,
@@ -432,7 +437,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
     <div className={`ind__canvas${big ? ' is-big' : ''}`}>
       <div className="ind__stage" ref={wrap}>
       <canvas ref={canvas} className="ind__sphere" role="img" aria-label={`Spherical network of ${hubs.length} classes and their relationships and attributes. Drag to rotate, scroll to zoom. Use the class list below the graph to select one with the keyboard.`} />
-      {picked && <Details node={picked} hubs={hubs} links={links} onClose={() => { setPicked(null); onSelect(null) }} />}
+      {picked && !onPick && <Details node={picked} hubs={hubs} links={links} onClose={() => { setPicked(null); onSelect(null) }} />}
       {tip && !picked && (
         <div className="ind__tip" role="status">
           <b>{tip.label}</b>
@@ -461,7 +466,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
   )
 }
 
-function Details({ node, hubs, links, onClose }: { node: N; hubs: Hub[]; links: Link[]; onClose: () => void }) {
+export function Details({ node, hubs, links, onClose }: { node: N; hubs: Hub[]; links: Link[]; onClose: () => void }) {
   const hub = hubs.find((h) => h.key === node.hub)
   if (!hub) return null
   const nameOf = (k: string) => hubs.find((h) => h.key === k)?.name ?? k
@@ -469,7 +474,7 @@ function Details({ node, hubs, links, onClose }: { node: N; hubs: Hub[]; links: 
   const more = (n: number, shown: number) => (n > shown ? <li className="ind__more">and {n - shown} more</li> : null)
   const kind = node.kind === 'hub' ? 'Class' : node.kind === 'rel' ? 'Relationship' : 'Attribute'
   return (
-    <aside className="ind__detail" aria-label={kind + ' details'}>
+    <aside className="ind__detail ind__detail--side" aria-label={kind + ' details'}>
       <div className="ind__detail-head">
         <div>
           <span className="ind__detail-kind">{kind}</span>

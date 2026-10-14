@@ -10,8 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
 import Tip from './Tip'
 import EmptyState from './EmptyState'
 import PageTitle from './PageHead'
-import Sphere3D from './Graph3D'
-import type { Hub, Link } from './Graph3D'
+import Sphere3D, { Details } from './Graph3D'
+import type { Hub, Link, PickedNode } from './Graph3D'
 import { IconChevron, IconClose, IconSort, IconPlus, IconDownload, IconSpark, IconExpand } from './icons'
 import './Namespaces.css'
 import './Induction.css'
@@ -232,6 +232,7 @@ function relationsFor(c: Cls, classes: Cls[]) {
 
 export function Graph({ classes, selected, onSelect, big, data }: { classes: Cls[]; selected: string | null; onSelect: (name: string | null) => void; big?: boolean; data?: { hubs: Hub[]; links: Link[] } }) {
   const [standalone, setStandalone] = useState(false)
+  const [picked, setPicked] = useState<PickedNode | null>(null)
   const visible = useMemo(() => classes.filter((c) => c.key !== 'Technology' || standalone), [classes, standalone])
   const hubs: Hub[] = useMemo(
     () => data ? data.hubs : visible.map((c) => ({
@@ -248,7 +249,10 @@ export function Graph({ classes, selected, onSelect, big, data }: { classes: Cls
 
   return (
     <div className={`ind__graph${big ? ' is-big' : ''}${data ? ' is-quiet' : ''}`}>
-      <Sphere3D hubs={hubs} links={links} selected={selected} onSelect={onSelect} big={big} />
+      <Sphere3D hubs={hubs} links={links} selected={selected} onSelect={onSelect} big={big} onPick={setPicked} />
+      {picked ? (
+        <Details node={picked} hubs={hubs} links={links} onClose={() => { setPicked(null); onSelect(null) }} />
+      ) : (
       <div className="ind__legend" aria-label="Legend">
         <h4>Legend</h4>
         <ul>
@@ -262,6 +266,7 @@ export function Graph({ classes, selected, onSelect, big, data }: { classes: Cls
           <input type="checkbox" checked={standalone} onChange={(e) => setStandalone(e.target.checked)} /> Show 1 standalone class
         </label>
       </div>
+      )}
     </div>
   )
 }
