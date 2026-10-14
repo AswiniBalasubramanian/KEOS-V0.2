@@ -3,8 +3,8 @@
 :root .pg__warn svg { width: 18px; height: 18px; flex-shrink: 0; color: #b45309; }
 :root .pg__warn span { flex: 1; }
 /* The chat surface reuses the main chat's bubble, reply and composer styles so both feel the same. */
-:root .pg__chat { display: flex; flex-direction: column; flex: 1; min-height: 420px; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); overflow: hidden; }
-:root .pg__thread { flex: 1; overflow-y: auto; max-height: calc(100vh - 330px); padding: 20px 20px 8px; }
+:root .pg__chat { display: flex; flex-direction: column; flex: 1; height: calc(100dvh - 164px); min-height: 420px; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); overflow: hidden; }
+:root .pg__thread { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 20px 8px; }
 :root .pg__inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
 :root .pg__steps { font-size: 14px; color: var(--text-3); }
 :root .pg__steps summary { display: inline-flex; align-items: center; gap: 6px; width: fit-content; cursor: pointer; list-style: none; }

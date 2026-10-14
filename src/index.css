@@ -1420,7 +1420,7 @@ input {
 /* ---- Sidebar footer: profile on the left, feedback icon at the right end of the name ---- */
 :root .footer-row { display: flex; align-items: center; gap: 4px; width: 100%; }
 :root .footer-row .profile { flex: 1; min-width: 0; width: auto; }
-:root .footer-row .feedback__trigger { width: 28px; height: 28px; padding: 0; display: grid; place-items: center; color: var(--text-3); }
+:root .footer-row .feedback__trigger { width: 32px; height: 28px; padding: 0; display: grid; place-items: center; color: var(--text-3); }
 :root .footer-row .feedback__trigger:hover { color: var(--text); }
 :root .app.is-collapsed .footer-row { flex-direction: column-reverse; gap: 4px; }
 
