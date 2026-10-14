@@ -12,7 +12,7 @@ import EmptyState from './EmptyState'
 import PageTitle from './PageHead'
 import Sphere3D from './Graph3D'
 import type { Hub, Link } from './Graph3D'
-import { IconCheck, IconChevron, IconClose, IconError, IconInfo, IconSort, IconPlus, IconDownload, IconSpark, IconExpand } from './icons'
+import { IconChevron, IconClose, IconSort, IconPlus, IconDownload, IconSpark, IconExpand } from './icons'
 import './Namespaces.css'
 import './Induction.css'
 
@@ -77,11 +77,10 @@ const fmtLong = (iso: string) => new Date(iso).toISOString().replace('Z', '+00:0
 const newId = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => { const r = Math.floor(Math.random() * 16); return (c === 'x' ? r : (r & 3) | 8).toString(16) })
 
 const statusClass = (s: Status) => (s === 'Accepted' ? 'done' : s === 'Failed' ? 'fail' : s === 'Running' ? 'run' : 'review')
-const StatusIcon = ({ s }: { s: Status }) => (s === 'Accepted' ? <IconCheck /> : s === 'Failed' ? <IconError /> : <IconInfo />)
 function StatusChip({ p }: { p: Pick<Proposal, 'status' | 'progress'> }) {
   return (
     <span className={`ns__status ns__status--${statusClass(p.status)}`}>
-      <StatusIcon s={p.status} /> {p.status === 'Running' ? `Running ${p.progress}%` : p.status}
+      {p.status === 'Running' ? `Running ${p.progress}%` : p.status}
     </span>
   )
 }
@@ -381,7 +380,7 @@ function ProposalDetail({ p, onAccept }: { p: Proposal; onAccept: () => void }) 
       </header>
 
       <div className="ind__status-line" role="status" aria-live="polite">
-        {valid && <span className={`ns__status ns__status--${valid.ok ? 'done' : 'fail'}`}>{valid.ok ? <IconCheck /> : <IconError />} {valid.text}</span>}
+        {valid && <span className={`ns__status ns__status--${valid.ok ? 'done' : 'fail'}`}>{valid.text}</span>}
         {note && <span className="ind__note">{note}</span>}
       </div>
 

@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
 import Tip from './Tip'
 import EmptyState from './EmptyState'
 import PageTitle from './PageHead'
-import { IconSearch, IconCheck, IconChevron, IconPlus, IconSort, IconClose, IconLock, IconEdit, IconError, IconInfo } from './icons'
+import { IconSearch, IconChevron, IconPlus, IconSort, IconClose, IconLock, IconEdit } from './icons'
 import './Namespaces.css'
 
 type Status = 'Active' | 'Inactive'
@@ -134,14 +134,14 @@ function DetailPanel({ open, row, degraded, editing, desc, setDesc, onClose, onE
               <div><dt>Owner</dt><dd>rfpravin@kaartech.com</dd></div>
               <div>
                 <dt>Status</dt>
-                <dd><span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status === 'Active' && <IconCheck />} {row.status}</span></dd>
+                <dd><span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status}</span></dd>
               </div>
               <div>
                 <dt>Knowledge graph health</dt>
                 <dd>
                   {degraded
-                    ? <span className="ns__status ns__status--bad"><IconError /> Degraded</span>
-                    : <span className="ns__status ns__status--active"><IconCheck /> Healthy</span>}
+                    ? <span className="ns__status ns__status--bad">Degraded</span>
+                    : <span className="ns__status ns__status--active">Healthy</span>}
                 </dd>
               </div>
               <div><dt>Sources</dt><dd className="ns__num">{row.sources}</dd></div>
@@ -188,8 +188,8 @@ function Detail({ row, onSave }: { row: Row; onSave: (description: string) => vo
         <div className="ns__titleblock">
           <div className="ns__titlerow">
             <h1 id="ns-detail-title" className="ns__title">{row.name}</h1>
-            <span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status === 'Active' && <IconCheck />} {row.status}</span>
-            {degraded && <span className="ns__status ns__status--bad"><IconError /> Degraded</span>}
+            <span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status}</span>
+            {degraded && <span className="ns__status ns__status--bad">Degraded</span>}
           </div>
           <Button variant="ghost" className="h-auto ns__btn ns__btn--link ns__btn--under" aria-haspopup="dialog" aria-expanded={panel} onClick={() => setPanel(true)}>View more</Button>
         </div>
@@ -231,7 +231,7 @@ function Detail({ row, onSave }: { row: Row; onSave: (description: string) => vo
                     <tr key={s.name}>
                       <td><span className="ns__name">{s.name}</span></td>
                       <td>{s.type}</td>
-                      <td><span className={`ns__status ns__status--${s.status === 'Completed' ? 'done' : s.status === 'Processing' ? 'run' : 'fail'}`}>{s.status === 'Completed' ? <IconCheck /> : s.status === 'Processing' ? <IconInfo /> : <IconError />} {s.status}</span></td>
+                      <td><span className={`ns__status ns__status--${s.status === 'Completed' ? 'done' : s.status === 'Processing' ? 'run' : 'fail'}`}>{s.status}</span></td>
                       <td className="ns__num">{s.tables}</td>
                     </tr>
                   ))}
@@ -518,7 +518,7 @@ export default function Namespaces({ detail, onDetail }: Props) {
                 <td className="ns__num">{r.sources}</td>
                 <td>
                   <span className={`ns__status ns__status--${r.status.toLowerCase()}`}>
-                    {r.status === 'Active' && <IconCheck />} {r.status}
+                    {r.status}
                   </span>
                 </td>
                 <td className="ns__num">{fmt(r.created)}</td>

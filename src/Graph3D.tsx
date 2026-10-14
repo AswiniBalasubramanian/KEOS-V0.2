@@ -81,6 +81,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
   const maxZ = total > 500 ? 8 : 3.4
   const [tip, setTip] = useState<N | null>(null)
   const [zoomUi, setZoomUi] = useState(1)
+  const [picked, setPicked] = useState<N | null>(null)
 
   const st = useRef({
     yaw: 0.5, pitch: -0.25, vyaw: 0, vpitch: 0,
@@ -94,12 +95,15 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
     sel: selected as string | null,
   })
   const calm = useRef(false)
+  const picked_ = useRef<N | null>(null)
   const propsRef = useRef({ links, onSelect, hubs })
   propsRef.current = { links, onSelect, hubs }
+  picked_.current = picked
 
   // keep the selection in the draw loop, and turn the sphere to face a newly selected class
   useEffect(() => {
     st.current.sel = selected
+    setPicked((cur) => (!selected ? null : cur && cur.hub === selected ? cur : byId.get('h:' + selected) ?? null))
     if (!selected) return
     const n = byId.get('h:' + selected)
     if (!n) return
@@ -273,7 +277,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
           ctx.fillStyle = COL[n.kind]
           ctx.globalAlpha = alpha * (0.14 + f * 0.2)
           ctx.beginPath()
-          ctx.arc(p.sx, p.sy, rad * (2.1 + f), 0, Math.PI * 2)
+          ctx.arc(p.sx, p.sy, rad * ((quiet ? 1.5 : 2.1) + f), 0, Math.PI * 2)
           ctx.fill()
         }
         ctx.globalAlpha = alpha
@@ -293,7 +297,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
       const label = (n: N, p: (typeof P)[number], strong: boolean) => {
         if (drawn >= cap) return
         const a = Math.min(1, (p.z + 0.15) * 2) * (dimmed(n) ? 0.25 : 1)
-        if (a <= 0.05) return
+        if (a <= (quiet ? 0.55 : 0.05)) return
         const rad = n.r * p.persp * zoomBoost
         const w = ctx.measureText(n.label).width
         const x0 = p.sx + rad + 5
@@ -303,7 +307,8 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
         for (let c = c0; c <= c1; c++) taken.add(c + ',' + cy)
         drawn++
         ctx.globalAlpha = a
-        ctx.lineWidth = 3.5
+        ctx.lineWidth = 3
+        ctx.lineJoin = 'round'
         ctx.strokeStyle = bg
         ctx.fillStyle = strong ? ink : (dark ? '#b4b4bd' : '#55555c')
         ctx.strokeText(n.label, x0, p.sy)
@@ -378,8 +383,17 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
       const [x, y] = pos(e)
       if (s.dragging && s.moved <= 4) {
         const h = hit(x, y)
-        if (h && h.kind === 'hub') propsRef.current.onSelect(s.sel === h.hub ? null : h.hub)
-        else if (!h) propsRef.current.onSelect(null)
+        if (h && h.kind === 'hub') {
+          const off = s.sel === h.hub && !!picked_.current && picked_.current.kind === 'hub'
+          setPicked(off ? null : h)
+          propsRef.current.onSelect(off ? null : h.hub)
+        } else if (h) {
+          setPicked(h)
+          if (s.sel !== h.hub) propsRef.current.onSelect(h.hub)
+        } else {
+          setPicked(null)
+          propsRef.current.onSelect(null)
+        }
       }
       if (calm.current) { s.vyaw = 0; s.vpitch = 0 }
       s.dragging = false
@@ -415,14 +429,11 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
   const reset = () => { const s = st.current; s.zoomTarget = 1; s.toYaw = null; s.toPitch = null; s.vyaw = 0; setZoomUi(1); onSelect(null) }
 
   return (
-    <div className={`ind__canvas${big ? ' is-big' : ''}`} ref={wrap}>
+    <div className={`ind__canvas${big ? ' is-big' : ''}`}>
+      <div className="ind__stage" ref={wrap}>
       <canvas ref={canvas} className="ind__sphere" role="img" aria-label={`Spherical network of ${hubs.length} classes and their relationships and attributes. Drag to rotate, scroll to zoom. Use the class list below the graph to select one with the keyboard.`} />
-      <div className="ind__zoom" role="group" aria-label="Zoom">
-        <button type="button" aria-label="Zoom in" disabled={zoomUi >= maxZ} onClick={() => setZoom(st.current.zoomTarget * 1.3)}>+</button>
-        <button type="button" aria-label="Zoom out" disabled={zoomUi <= 0.6} onClick={() => setZoom(st.current.zoomTarget / 1.3)}>−</button>
-        <button type="button" aria-label="Reset view" onClick={reset}>Reset</button>
-      </div>
-      {tip && (
+      {picked && <Details node={picked} hubs={hubs} links={links} onClose={() => { setPicked(null); onSelect(null) }} />}
+      {tip && !picked && (
         <div className="ind__tip" role="status">
           <b>{tip.label}</b>
           <span>
@@ -432,12 +443,75 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big }: Props
           </span>
         </div>
       )}
+      </div>
+      <div className="ind__foot">
       <p className="ind__hint">{hubs.length} classes · {total - hubs.length} dots · Drag to rotate · Scroll to zoom in for detail</p>
+      <div className="ind__zoom" role="group" aria-label="Zoom">
+        <button type="button" aria-label="Zoom in" disabled={zoomUi >= maxZ} onClick={() => setZoom(st.current.zoomTarget * 1.3)}>+</button>
+        <button type="button" aria-label="Zoom out" disabled={zoomUi <= 0.6} onClick={() => setZoom(st.current.zoomTarget / 1.3)}>−</button>
+        <button type="button" aria-label="Reset view" onClick={reset}>Reset</button>
+      </div>
+      </div>
       <ul className="sr-only" aria-label="Classes in the graph">
         {hubs.map((h) => (
           <li key={h.key}><button type="button" aria-pressed={selected === h.key} onClick={() => onSelect(selected === h.key ? null : h.key)}>{h.name}, {h.rel} relationships, {h.attrs} attributes</button></li>
         ))}
       </ul>
     </div>
+  )
+}
+
+function Details({ node, hubs, links, onClose }: { node: N; hubs: Hub[]; links: Link[]; onClose: () => void }) {
+  const hub = hubs.find((h) => h.key === node.hub)
+  if (!hub) return null
+  const nameOf = (k: string) => hubs.find((h) => h.key === k)?.name ?? k
+  const linked = links.filter((l) => l.a === hub.key || l.b === hub.key).map((l) => ({ label: l.label, to: nameOf(l.a === hub.key ? l.b : l.a) }))
+  const more = (n: number, shown: number) => (n > shown ? <li className="ind__more">and {n - shown} more</li> : null)
+  const kind = node.kind === 'hub' ? 'Class' : node.kind === 'rel' ? 'Relationship' : 'Attribute'
+  return (
+    <aside className="ind__detail" aria-label={kind + ' details'}>
+      <div className="ind__detail-head">
+        <div>
+          <span className="ind__detail-kind">{kind}</span>
+          <h3>{node.label}</h3>
+        </div>
+        <button type="button" className="ind__detail-x" aria-label="Close details" onClick={onClose}>×</button>
+      </div>
+      {node.kind === 'hub' ? (
+        <>
+          <p className="ind__detail-sub">{hub.rel} relationships and {hub.attrs} attributes</p>
+          {linked.length > 0 && (
+            <section>
+              <h4>Connected classes</h4>
+              <ul>{linked.slice(0, 6).map((l, i) => <li key={i}><b>{l.to}</b><span>{l.label}</span></li>)}{more(linked.length, 6)}</ul>
+            </section>
+          )}
+          <section>
+            <h4>Relationships</h4>
+            <ul>{hub.rels.slice(0, 6).map((r, i) => <li key={i}>{r}</li>)}{more(hub.rels.length, 6)}</ul>
+          </section>
+          <section>
+            <h4>Attributes</h4>
+            <ul>{hub.attributes.slice(0, 8).map((a, i) => <li key={i}>{a}</li>)}{more(hub.attributes.length, 8)}</ul>
+          </section>
+        </>
+      ) : (
+        <>
+          <p className="ind__detail-sub">{kind} of <b>{hub.name}</b></p>
+          <section>
+            <h4>{node.kind === 'rel' ? 'Other relationships of this class' : 'Other attributes of this class'}</h4>
+            <ul>
+              {(node.kind === 'rel' ? hub.rels : hub.attributes).filter((x) => x !== node.label).slice(0, 6).map((x, i) => <li key={i}>{x}</li>)}
+            </ul>
+          </section>
+          {node.kind === 'rel' && linked.length > 0 && (
+            <section>
+              <h4>{hub.name} connects to</h4>
+              <ul>{linked.slice(0, 4).map((l, i) => <li key={i}><b>{l.to}</b><span>{l.label}</span></li>)}</ul>
+            </section>
+          )}
+        </>
+      )}
+    </aside>
   )
 }
