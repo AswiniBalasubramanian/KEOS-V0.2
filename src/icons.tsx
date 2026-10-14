@@ -4,7 +4,7 @@ import {
   ArrowSquareOut, Compass, ArrowBendDownRight, ThumbsDown, ThumbsUp, Globe, PlugsConnected, Paperclip, Buildings, Check, Crosshair, Laptop, ArrowsClockwise, Bell, BookOpen, CalendarBlank, CaretDown, CaretUpDown,
   ChartBar, ChatCircle, Clipboard, Clock, Code, Copy, CornersOut,
   DownloadSimple, Export, File, FileText, FolderSimple, FolderSimplePlus, Gavel, Gear,
-  GitFork, HardDrives, Image, MagnifyingGlass, Microphone, Minus, Moon, PaperPlaneRight,
+  GitFork, HardDrives, Image, MagnifyingGlass, Microphone, Minus, Moon,
   Palette, Plus, Question, Robot, ShieldCheck, SidebarSimple, SlidersHorizontal, Sparkle,
   Stack, Star, Storefront, Sun, Table, TextT, TreeStructure, Flask, X, Graph, ListBullets, Tray,
   ArrowLeft, Lock, PencilSimple, XCircle, Info, Lightbulb, Funnel,
@@ -29,7 +29,13 @@ export const IconSearch = I(MagnifyingGlass)
 export const IconBell = I(Bell)
 export const IconHelp = I(Question)
 export const IconMic = I(Microphone)
-export const IconSend = I(PaperPlaneRight)
+/* Custom send mark: a solid plane with a lighter second wing. It takes the button's text colour. */
+export const IconSend = ({ className }: P) => (
+  <svg className={className} width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+    <path d="M1.80668 11.3465L2.96668 9.02649C3.28668 8.37982 3.28668 7.62649 2.96668 6.97982L1.80668 4.65315C0.813348 2.66649 2.95335 0.566486 4.92001 1.60649L5.94668 2.15315C6.09335 2.22649 6.20668 2.34649 6.26668 2.49315L10.06 10.9265C10.2133 11.2732 10.0733 11.6798 9.74001 11.8532L4.91335 14.3932C2.95335 15.4332 0.813348 13.3332 1.80668 11.3465Z" fill="currentColor" />
+    <path opacity="0.8" d="M10.8733 10.4003L8.38667 4.8803C8.10667 4.2603 8.77334 3.63363 9.37334 3.95363L13.22 5.9803C14.8533 6.8403 14.8533 9.17363 13.22 10.0336L11.86 10.747C11.4933 10.9336 11.0467 10.7803 10.8733 10.4003Z" fill="currentColor" />
+  </svg>
+)
 export const IconScope = I(File)
 export const IconFolderPlus = I(FolderSimplePlus)
 export const IconSpark = I(Sparkle)
