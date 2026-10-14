@@ -3,6 +3,7 @@ import { useReducedMotion } from 'motion/react'
 import { Button } from '@/components/ui/button'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { IconCopy, IconCheck, IconDownload, IconSort, IconSearch, IconError, IconRefresh, IconChevron } from './icons'
+import EmptyState from './EmptyState'
 import './OutputBlocks.css'
 
 export type Stage = 'skeleton' | 'ready' | 'error'
@@ -163,7 +164,12 @@ export function TableBlock({ stage, progress, onRetry }: BlockProps) {
             {stage === 'ready' && !streaming && list.length === 0 && (
               <tr>
                 <td colSpan={6} className="ob__empty">
-                  No contractors match “{query}”. <button type="button" className="ob__link" onClick={() => setQuery('')}>Clear the filter</button>
+                  <EmptyState
+                    art="loupe"
+                    compact
+                    title={`No contractors match “${query}”`}
+                    action={<button type="button" className="ob__link" onClick={() => setQuery('')}>Clear the filter</button>}
+                  />
                 </td>
               </tr>
             )}

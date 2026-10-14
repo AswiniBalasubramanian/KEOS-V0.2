@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useId, useLayoutEffect, useRef, type KeyboardEvent, type ReactNode } from "react";
+import Tip from "../../../Tip";
 import { LayoutGroup, motion, useReducedMotion } from "motion/react";
 import { motionTokens } from "../lib/motion-tokens";
 import styles from "./segmented-control.module.css";
 
-export interface Segment { value: string; label: string; /** Optional content after the label, such as a badge. */ accessory?: ReactNode; }
+export interface Segment { value: string; label: string; /** Show this icon instead of the text. The label stays as the accessible name. */ icon?: ReactNode; /** Optional content after the label, such as a badge. */ accessory?: ReactNode; }
 export interface SegmentedControlProps {
   options: Segment[];
   value: string;
@@ -64,10 +65,10 @@ export default function SegmentedControl({ options, value, onValueChange, label,
 
   return <div className={`${styles.root} ${className ?? ""}`} role="group" aria-label={label}>
     <LayoutGroup id={id}><motion.div ref={track} layoutScroll className={styles.track}>
-      {options.map((option, index) => <button key={option.value} id={`${id}-${option.value}`} className={styles.button} type="button" data-value={option.value} aria-pressed={value === option.value} tabIndex={index === selectedIndex ? 0 : -1} onClick={() => onValueChange(option.value)} onKeyDown={onKeyDown} onPointerEnter={onOptionIntent ? () => onOptionIntent(option.value) : undefined} onFocus={onOptionIntent ? () => onOptionIntent(option.value) : undefined}>
+      {options.map((option, index) => { const btn = <button key={option.value} id={`${id}-${option.value}`} className={styles.button} type="button" aria-label={option.icon ? option.label : undefined} data-value={option.value} aria-pressed={value === option.value} tabIndex={index === selectedIndex ? 0 : -1} onClick={() => onValueChange(option.value)} onKeyDown={onKeyDown} onPointerEnter={onOptionIntent ? () => onOptionIntent(option.value) : undefined} onFocus={onOptionIntent ? () => onOptionIntent(option.value) : undefined}>
         {value === option.value && <motion.span className={styles.selection} layoutId="selection" layoutDependency={value} transition={reduced ? { duration: 0 } : motionTokens.spring.morph} aria-hidden="true" />}
-        <span className={styles.label}>{option.label}{option.accessory}</span>
-      </button>)}
+        <span className={styles.label}>{option.icon ?? option.label}{option.accessory}</span>
+      </button>; return option.icon ? <Tip key={option.value} label={option.label} side="top">{btn}</Tip> : btn; })}
     </motion.div></LayoutGroup>
   </div>;
 }

@@ -175,3 +175,33 @@
 :root .ns__alert { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 12px 14px; border: 1px solid var(--danger, #d92d20); border-radius: 10px; font-size: 13px; color: var(--text-2); }
 :root .ns__alert p { margin: 0; }
 :root .ns__alert b { font-weight: 500; color: var(--danger, #d92d20); }
+
+/* Detail header: status chips next to the title */
+:root .ns__titlerow { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+
+/* Right-hand details panel */
+:root .ns__drawer-scrim { position: fixed; inset: 0; z-index: 60; display: flex; justify-content: flex-end; background: rgb(0 0 0 / 0.6); }
+:root .ns__drawer { display: flex; flex-direction: column; width: min(420px, 100vw); height: 100%; border-left: 1px solid var(--border); background: var(--bg-elevated); box-shadow: var(--pop-shadow); }
+:root .ns__drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+:root .ns__drawer-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 20px; }
+:root .ns__drawer-list dt { font-size: 12px; font-weight: 500; color: var(--text-3); }
+:root .ns__drawer-list dt label { font: inherit; color: inherit; }
+:root .ns__drawer-list dd { margin: 4px 0 0; font-size: 13px; color: var(--text); overflow-wrap: anywhere; }
+:root .ns__mono { font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; }
+:root .ns__drawer-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px; border-top: 1px solid var(--border); }
+
+/* Link-style button */
+:root .ns__btn--link { padding: 6px 4px; border-color: transparent; background: transparent; color: var(--text-2); text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 4px; }
+:root .ns__btn--link:hover:not(:disabled) { background: transparent; color: var(--text); text-decoration-color: var(--text); }
+:root .ns__btn--link[aria-expanded='true'] { background: transparent; color: var(--text); }
+:root .ns__drawer-actions { display: flex; align-items: center; gap: 8px; }
+:root .ns__titleblock { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+:root .ns__btn--under { margin-left: -4px; padding: 2px 4px; }
+
+/* Source status chips: colour follows the state */
+:root .ns__status--done { background: var(--ok-bg, rgb(21 128 61 / 0.12)); color: var(--ok-text, #166534); }
+:root .ns__status--run { background: rgb(37 99 235 / 0.1); color: #1d4ed8; }
+:root .ns__status--fail { background: rgb(217 45 32 / 0.1); color: #b42318; }
+:root[data-theme='dark'] .ns__status--done { color: #7fd6a0; }
+:root[data-theme='dark'] .ns__status--run { color: #8db4ff; }
+:root[data-theme='dark'] .ns__status--fail { color: #f4a09a; }

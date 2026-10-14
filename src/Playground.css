@@ -1,0 +1,22 @@
+:root .pg { display: flex; flex-direction: column; min-height: 0; }
+:root .pg__warn { display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 10px 14px; border: 1px solid rgb(217 119 6 / 0.35); border-radius: 10px; background: rgb(217 119 6 / 0.1); font-size: 13px; color: var(--text); }
+:root .pg__warn svg { width: 18px; height: 18px; flex-shrink: 0; color: #b45309; }
+:root .pg__warn span { flex: 1; }
+/* The chat surface reuses the main chat's bubble, reply and composer styles so both feel the same. */
+:root .pg__chat { display: flex; flex-direction: column; flex: 1; min-height: 420px; margin-top: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); overflow: hidden; }
+:root .pg__thread { flex: 1; overflow-y: auto; max-height: calc(100vh - 330px); padding: 20px 20px 8px; }
+:root .pg__inner { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 22px; }
+:root .pg__steps { font-size: 14px; color: var(--text-3); }
+:root .pg__steps summary { display: inline-flex; align-items: center; gap: 6px; width: fit-content; cursor: pointer; list-style: none; }
+:root .pg__steps summary::-webkit-details-marker { display: none; }
+:root .pg__steps summary:hover { color: var(--text); }
+:root .pg__chev { width: 14px; height: 14px; transform: rotate(-90deg); transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1); }
+:root .pg__steps[open] .pg__chev { transform: rotate(0deg); }
+:root .pg__steps .think__steps { margin-top: 8px; }
+:root .pg__step { margin: 0; padding-left: 14px; border-left: 2px solid var(--border-strong); font-size: 14px; color: var(--text-3); }
+:root .reply__stopped-note { margin: 0; font-size: 13px; color: var(--text-3); }
+:root .pg__starters { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+:root .pg__dock { padding: 12px 20px 16px; }
+:root .pg__dock .composer { max-width: 760px; margin: 0 auto; }
+:root .pg__hint { flex: 1; font-size: 12px; color: var(--text-3); }
+@media (prefers-reduced-motion: reduce) { :root .pg__chev { transition: none; } }

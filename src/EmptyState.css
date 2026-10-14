@@ -1,0 +1,53 @@
+.empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px 16px 24px; }
+.empty__art { width: min(300px, 80%); margin-bottom: 4px; }
+.empty--compact .empty__art { width: min(190px, 70%); }
+.empty__title { margin: 0; font-size: 15px; font-weight: 500; color: var(--text); }
+.empty__text { margin: 6px 0 0; max-width: 42ch; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+.empty__action { margin-top: 14px; }
+
+/* Mini animation: calm idle motion, and a reaction to the pointer or a tap */
+.empty__art { cursor: pointer; touch-action: manipulation; }
+.empty-art [data-part] { transition: transform 520ms cubic-bezier(0.32, 0.72, 0, 1); }
+.empty-art .iso-line[data-dashed] { animation: emptyMarch 2.6s linear infinite; }
+@keyframes emptyMarch { to { stroke-dashoffset: -12; } }
+
+/* Graph: the missing concept lifts toward the graph when touched */
+.empty.is-on [data-part='ghost'] { transform: translate(calc(var(--vx) * 12px), calc(var(--vy) * 12px)); }
+
+/* Loupe: scans the sheet on its own; the pointer takes over while it moves */
+[data-part='scan'], [data-part='scanring'] { animation: emptyScan 5.5s ease-in-out infinite; }
+@keyframes emptyScan {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(calc(var(--vx) * 18px), calc(var(--vy) * 18px)); }
+}
+.empty.is-steer [data-part='scan'], .empty.is-steer [data-part='scanring'] {
+  animation: none;
+  transform: translate(calc(var(--vx) * var(--t, 0) * 1px), calc(var(--vy) * var(--t, 0) * 1px));
+  transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Bubble: the three typing dots bounce one after another, faster when touched */
+[data-part='dot'] { animation: emptyDot 1.6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.16s); }
+.empty.is-on [data-part='dot'] { animation-duration: 0.8s; }
+@keyframes emptyDot {
+  0%, 60%, 100% { transform: translate(0, 0); }
+  30% { transform: translate(calc(var(--vx) * 5px), calc(var(--vy) * 5px)); }
+}
+
+/* Monitor: the cursor blinks, and drops to the next line when touched */
+[data-part='cursor'] { animation: emptyBlink 1.2s steps(1, end) infinite; }
+@keyframes emptyBlink { 0%, 55% { opacity: 1; } 56%, 100% { opacity: 0; } }
+.empty.is-on [data-part='cursor'] { transform: translate(calc(var(--vx) * 10px), calc(var(--vy) * 10px)); }
+
+/* Gauge: the needle trembles near zero, and sweeps up and back when touched */
+[data-part='needle'] { transform-origin: var(--ox) var(--oy); transform: matrix(var(--m0)); animation: emptyNeedle 3.2s ease-in-out infinite; }
+@keyframes emptyNeedle { 0%, 100% { transform: matrix(var(--m0)); } 50% { transform: matrix(var(--m2)); } }
+.empty.is-on [data-part='needle'] { animation: emptySweep 1.6s cubic-bezier(0.32, 0.72, 0, 1) infinite; }
+@keyframes emptySweep { 0%, 100% { transform: matrix(var(--m0)); } 45%, 55% { transform: matrix(var(--m1)); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .empty-art [data-part], .empty-art .iso-line[data-dashed] { animation: none !important; transition: none !important; }
+}
+.chats__clear { padding: 5px 12px; border: 1px solid var(--border-strong); border-radius: 8px; font-size: 13px; font-weight: 500; color: var(--text); }
+.chats__clear:hover { background: var(--hover); }
+.ns__empty .empty, .ob__empty .empty, .mem-table__empty .empty { padding: 8px 12px 14px; }

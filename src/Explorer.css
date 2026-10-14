@@ -1,0 +1,38 @@
+:root .exp__bar { display: flex; align-items: center; justify-content: flex-end; gap: 10px; margin-left: auto; flex: 1 1 480px; min-width: 0; }
+:root .exp__tabrow { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+:root .exp__tabrow .ns__tabs { margin-top: 0; }
+:root .exp__search { flex: 1 1 160px; min-width: 120px; max-width: 240px; }
+:root .exp__select select { padding: 7px 28px 7px 10px; border: 1px solid var(--border-strong); border-radius: 8px; background: transparent; font: inherit; font-size: 13px; color: var(--text); }
+:root .exp__pager { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-variant-numeric: tabular-nums; color: var(--text-3); }
+:root .exp__pg { display: grid; place-items: center; width: 28px; height: 28px; padding: 0; border-radius: 8px; color: var(--text-2); }
+:root .exp__pg:hover:not(:disabled) { background: var(--hover); }
+:root .exp__pg:disabled { opacity: 0.35; }
+:root .exp__pg svg { width: 14px; height: 14px; }
+:root .exp__prev { transform: rotate(90deg); }
+:root .exp__next { transform: rotate(-90deg); }
+:root .exp__desc { white-space: normal !important; min-width: 280px; }
+:root .exp__loading { margin: 12px 0 0; text-align: center; font-size: 13px; color: var(--text-3); }
+:root .exp__head { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+:root .exp__head .ns__card-title { margin: 0; }
+:root .exp__sub { margin: 4px 0 12px; font-size: 13px; color: var(--text-3); }
+:root .exp__iri { display: block; margin-top: 2px; font-family: var(--font-mono, ui-monospace, monospace); font-size: 12px; color: var(--text-3); }
+:root .ns__status--info { background: var(--active); color: var(--text-2); }
+:root .exp__iri { white-space: normal; overflow-wrap: anywhere; max-width: 340px; }
+:root .exp__bar [aria-pressed] svg { width: 16px; height: 16px; display: block; }
+:root .exp__pager { white-space: nowrap; }
+:root .exp__filter { display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--border-strong); border-radius: 8px; color: var(--text-3); }
+:root .exp__filter:hover, :root .exp__filter[aria-expanded='true'] { color: var(--text); background: var(--active); }
+:root .exp__filter svg { width: 16px; height: 16px; }
+:root .exp__opt { display: flex; align-items: center; justify-content: space-between; gap: 10px; white-space: nowrap; }
+:root .exp__opt svg { width: 14px; height: 14px; }
+:root .exp__bar [aria-pressed] { display: inline-grid; place-items: center; width: 28px; min-height: 26px; height: 26px; padding: 0; }
+:root .exp__bar [aria-pressed] > span { display: grid; place-items: center; line-height: 0; }
+:root .exp__bar [aria-pressed] svg { width: 16px; height: 16px; }
+:root .exp__head .exp__bar { flex: 0 1 auto; flex-wrap: wrap; margin-left: auto; }
+:root .exp__titlerow { display: inline-flex; align-items: center; gap: 6px; }
+:root .exp__info { display: grid; place-items: center; width: 22px; height: 22px; padding: 0; border-radius: 6px; color: var(--text-3); }
+:root .exp__info:hover { color: var(--text); background: var(--active); }
+:root .exp__info svg { width: 16px; height: 16px; }
+:root .ns__head .ns__tabs { margin-top: 0; }
+:root .exp__head { margin-bottom: 22px; }
+:root .ns__head:has(.pagetitle):has(.ns__tabs) { align-items: center; margin-bottom: 20px; }

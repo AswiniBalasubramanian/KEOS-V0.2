@@ -17,7 +17,13 @@ import FloatingMascot from './FloatingMascot'
 import FeedbackMenu from './FeedbackMenu'
 import NewBadge from './NewBadge'
 import Tip from './Tip'
+import EmptyState from './EmptyState'
 import Namespaces from './Namespaces'
+import Induction from './Induction'
+import Explorer from './Explorer'
+import Metrics from './Metrics'
+import Playground from './Playground'
+import { Modal } from './Induction'
 import Logo3D from './Logo3D'
 import ProfileMenu from './ProfileMenu'
 import SettingsDialog from './SettingsDialog'
@@ -30,7 +36,7 @@ import {
   IconNewChat, IconProjects, IconAgent, IconWorkflow, IconMarket,
   IconResearch, IconApps, IconAdmin, IconSettings, IconPanel, IconChevron,
   IconSearch, IconBell, IconMic, IconSend, IconFolderPlus,
-  IconSpark, IconSun, IconMoon, IconClose, IconEdit, IconFolder, IconSliders, IconChat, IconFork,
+  IconSpark, IconSun, IconMoon, IconClose, IconEdit, IconPlus, IconFolder, IconSliders, IconChat, IconFork,
   IconStar, IconGrid, IconBars, IconDownload, IconShare, IconSort, IconFile, IconRecords, IconClock,
   IconPalette, IconCode, IconOntology, IconInbox, IconGlobe, IconRoute,
 } from './icons'
@@ -156,7 +162,6 @@ const TOUR_STEPS: Step[] = [
 
 export default function Conversation() {
   const [expanded, setExpanded] = useState(() => window.innerWidth > 640)
-  const [projectsOpen, setProjectsOpen] = useState(true)
   const [ontologyOpen, setOntologyOpen] = useState(true)
   const [inboxOpen, setInboxOpen] = useState(false)
   const [inboxTab, setInboxTab] = useState<'inbox' | 'new'>('inbox')
@@ -174,7 +179,19 @@ export default function Conversation() {
   const unreadInbox = INBOX_ITEMS.filter((n) => !readIds.includes(n.id)).length
   const [active, setActive] = useState('newchat')
   const [nsDetail, setNsDetail] = useState<{ id: string; name: string } | null>(null)
+  const [podOpen, setPodOpen] = useState(false)
+  const [podName, setPodName] = useState('')
+  const createPod = () => {
+    const n = podName.trim()
+    if (!n) return
+    setProjects((p) => [...p, n])
+    setPodOpen(false)
+    setActive('project')
+    setToast({ lead: 'Pod created:', bold: n, sub: 'It is now in your scope.' })
+  }
+  const [indDetail, setIndDetail] = useState<{ id: string; name: string } | null>(null)
   useEffect(() => { if (active !== 'ontology-namespaces') setNsDetail(null) }, [active])
+  useEffect(() => { if (active !== 'ontology-induction') setIndDetail(null) }, [active])
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
 
   useEffect(() => {
@@ -640,23 +657,21 @@ export default function Conversation() {
           </Button></Tip>
 
           {/* Projects (expandable) */}
-          <Tip label="Pods" side="right" block disabled={expanded}><Button variant="ghost" 
+          <div className="nav__row">
+          <Tip label="Pods" side="right" block disabled={expanded}><Button variant="ghost"
             data-nav="projects"
             className="h-auto nav__item"
-            onClick={() => (expanded ? setProjectsOpen((v) => !v) : setExpanded(true))}
+            onClick={() => setActive('project')}
           >
             <IconProjects className="nav__icon" />
             <span className="nav__label">Pods</span>
-            <IconChevron
-              className={`nav__chevron${projectsOpen ? ' is-open' : ''}`}
-            />
           </Button></Tip>
-          {expanded && projectsOpen && (
-            <div className="nav__sub">
-              <Button variant="ghost" className="h-auto nav__subitem" onClick={() => setActive('project')}>All pods</Button>
-              <Button variant="ghost" className="h-auto nav__subitem">New pod</Button>
-            </div>
+          {expanded && (
+            <Tip label="New pod" side="top"><Button variant="ghost" className="h-auto nav__add" aria-label="New pod" onClick={() => { setPodName(''); setPodOpen(true) }}>
+              <IconPlus />
+            </Button></Tip>
           )}
+          </div>
 
           {/* Ontology (expandable) */}
           <Tip label="Ontology" side="right" block disabled={expanded}><Button variant="ghost"
@@ -717,14 +732,31 @@ export default function Conversation() {
       </aside>
 
       {/* ===================== MAIN ===================== */}
+      <Modal open={podOpen} title="Create a pod" onClose={() => setPodOpen(false)}>
+        <p className="ns__sub">A pod groups the files, agents and memory for one piece of work. You can add more to it later.</p>
+        <div className="ns__field">
+          <label htmlFor="pod-name" className="ns__label">Pod name</label>
+          <input id="pod-name" className="ns__input" placeholder="e.g., Jubail pipeline inspection" value={podName} onChange={(e) => setPodName(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') createPod() }} />
+        </div>
+        <div className="ns__actions">
+          <Button variant="ghost" className="h-auto ns__btn" onClick={() => setPodOpen(false)}>Cancel</Button>
+          <Button variant="ghost" className="h-auto ns__btn ns__btn--primary" disabled={!podName.trim()} onClick={createPod}>Create pod</Button>
+        </div>
+      </Modal>
       <main className="main">
         <header className="topbar">
           <nav className="crumbs">
-            {active === 'ontology-namespaces' && nsDetail ? (
+            {active.startsWith('ontology-') && (
               <>
-                <button type="button" className="crumbs__link" onClick={() => setNsDetail(null)}>Namespaces</button>
+                <span className="crumbs__group">Ontology</span>
                 <span className="crumbs__sep" aria-hidden="true">›</span>
-                <span className="crumbs__current" aria-current="page">{nsDetail.name}</span>
+              </>
+            )}
+            {(active === 'ontology-namespaces' && nsDetail) || (active === 'ontology-induction' && indDetail) ? (
+              <>
+                <button type="button" className="crumbs__link" onClick={() => (active === 'ontology-induction' ? setIndDetail(null) : setNsDetail(null))}>{active === 'ontology-induction' ? 'Induction' : 'Namespaces'}</button>
+                <span className="crumbs__sep" aria-hidden="true">›</span>
+                <span className="crumbs__current" aria-current="page">{(active === 'ontology-induction' ? indDetail : nsDetail)?.name}</span>
               </>
             ) : (
               <span className={`crumbs__current${active === 'codegenie' ? ' crumbs__current--accent' : ''}`}>
@@ -802,8 +834,20 @@ export default function Conversation() {
             <div className="chats__scroll">
               {filteredChats.length === 0 ? (
                 <div className="chats__empty">
-                  <IconChat className="chats__empty-icon" />
-                  <p>{chatQuery ? 'No chats match your search' : 'No chats yet. Start one and it appears here.'}</p>
+                  {chatQuery ? (
+                    <EmptyState
+                      art="loupe"
+                      compact
+                      title="No chats match your search"
+                      action={<Button variant="ghost" className="h-auto chats__clear" onClick={() => setChatQuery('')}>Clear search</Button>}
+                    >
+                      Try a different word, or a pod name.
+                    </EmptyState>
+                  ) : (
+                    <EmptyState art="bubble" compact title="No chats yet">
+                      Start a chat and it appears here.
+                    </EmptyState>
+                  )}
                 </div>
               ) : (
                 Object.entries(chatGroups).map(([group, items]) => (
@@ -832,20 +876,28 @@ export default function Conversation() {
           <ProjectDetail />
         ) : active === 'ontology-namespaces' ? (
           <Namespaces detail={nsDetail} onDetail={setNsDetail} />
+        ) : active === 'ontology-induction' ? (
+          <Induction detail={indDetail} onDetail={setIndDetail} onOpenExplorer={() => setActive('ontology-explorer')} />
+        ) : active === 'ontology-playground' ? (
+          <Playground />
+        ) : active === 'ontology-metrics' ? (
+          <Metrics />
+        ) : active === 'ontology-explorer' ? (
+          <Explorer />
         ) : active.startsWith('ontology-') ? (
           <section className="convo">
             <div className="convo__inner">
-              <span className="codegenie-code__icon"><IconOntology /></span>
-              <h1 className="convo__title">{ONTOLOGY.find((o) => o.id === active)?.label}</h1>
-              <p className="convo__subtitle">This page isn’t available yet. We’re still building it.</p>
+              <EmptyState art="graph" title={`${ONTOLOGY.find((o) => o.id === active)?.label} opens soon`}>
+                This page isn’t available yet. For now, open Namespaces to see your namespaces and their sources.
+              </EmptyState>
             </div>
           </section>
         ) : active === 'codegenie' && codeMode === 'code' ? (
           <section className="convo">
             <div className="convo__inner">
-              <span className="codegenie-code__icon"><IconCode /></span>
-              <h1 className="convo__title">Code workspace</h1>
-              <p className="convo__subtitle">Describe what you want to build and KEOS writes the code. This workspace opens soon.</p>
+              <EmptyState art="screen" title="Code workspace opens soon">
+                Describe what you want to build and KEOS will write the code here. Chat mode works today.
+              </EmptyState>
             </div>
           </section>
         ) : (

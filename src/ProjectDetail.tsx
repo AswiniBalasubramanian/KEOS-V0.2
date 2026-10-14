@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import Tip from './Tip'
+import EmptyState from './EmptyState'
 import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table'
@@ -227,7 +228,7 @@ export default function ProjectDetail() {
                   </TableHeader>
                   <TableBody>
                     {listRows.length === 0 ? (
-                      <TableRow><TableCell colSpan={3} className="mem-table__empty">No memories match. Clear a filter or try another search.</TableCell></TableRow>
+                      <TableRow><TableCell colSpan={3} className="mem-table__empty"><EmptyState art="loupe" compact title="No memories match">Clear a filter or try another search.</EmptyState></TableCell></TableRow>
                     ) : (
                       listRows.map((it) => (
                         <TableRow key={it.kind} onClick={() => setSelected(it.kind)}>

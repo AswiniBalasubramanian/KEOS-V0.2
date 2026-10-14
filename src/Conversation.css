@@ -1056,3 +1056,16 @@
 /* Drop files onto the prompt box */
 .composer.is-drop { border-style: dashed; border-color: var(--text-4); }
 .composer__drop { position: absolute; inset: 0; z-index: 4; display: grid; place-items: center; border-radius: inherit; background: var(--bg-elevated); font-size: 14px; color: var(--text-2); }
+
+/* Row action: a "+" that appears on hover or focus, like the Artifacts reference */
+.nav__row { position: relative; }
+.nav__add { position: absolute; top: 50%; right: 10px; display: grid; place-items: center; width: 24px; height: 24px; padding: 0; border-radius: 6px; color: var(--text-3); opacity: 1; transform: translateY(-50%); transition: opacity 140ms var(--ease), background-color 140ms var(--ease), color 140ms var(--ease); }
+.nav__row:hover .nav__add, .nav__add:focus-visible { opacity: 1; }
+.nav__add:hover { background: var(--active); color: var(--text); }
+.nav__add svg { width: 14px; height: 14px; }
+@media (hover: none) { .nav__add { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .nav__add { transition: none; } }
+.ns__dialog .ns__input { display: block; width: 100%; }
+.nav__row .tip-anchor:has(.nav__add) { position: absolute; top: 50%; right: 10px; display: block; width: 24px; height: 24px; transform: translateY(-50%); }
+.nav__row .nav__add { position: static; transform: none; }
+.crumbs__group { color: var(--text-3); }

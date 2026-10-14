@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea'
 import SegmentedControl from '@/components/arc/segmented-control/segmented-control'
 import { Tabs, TabsList, TabsTrigger } from '@/components/arc/tabs/tabs'
 import Tip from './Tip'
+import EmptyState from './EmptyState'
+import PageTitle from './PageHead'
 import { IconSearch, IconCheck, IconChevron, IconPlus, IconSort, IconClose, IconLock, IconEdit, IconError, IconInfo } from './icons'
 import './Namespaces.css'
 
@@ -57,7 +59,7 @@ const sourcesFor = (r: Row) =>
     name: r.id === 'ontologyvskb' ? 'test-docs' : `${r.id}-source-${i + 1}`,
     type: SOURCE_KINDS[i % SOURCE_KINDS.length].type,
     tables: SOURCE_KINDS[i % SOURCE_KINDS.length].tables,
-    status: 'Completed',
+    status: (['Completed', 'Processing', 'Failed'] as const)[i % 3],
   }))
 
 const TABS = [
@@ -66,65 +68,150 @@ const TABS = [
   { id: 'metrics', label: 'Metrics' },
 ]
 
+function DetailPanel({ open, row, degraded, editing, desc, setDesc, onClose, onEdit, onCancel, onSave }: {
+  open: boolean
+  row: Row
+  degraded: boolean
+  editing: boolean
+  desc: string
+  setDesc: (v: string) => void
+  onClose: () => void
+  onEdit: () => void
+  onCancel: () => void
+  onSave: () => void
+}) {
+  const reduce = useReducedMotion()
+  const id = useId()
+  const panel = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (open) requestAnimationFrame(() => panel.current?.querySelector<HTMLElement>('button, input')?.focus())
+  }, [open])
+
+  const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); onClose(); return }
+    if (e.key === 'Tab') {
+      const f = Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not([disabled]), input') ?? [])
+      if (!f.length) return
+      const first = f[0], last = f[f.length - 1]
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus() }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus() }
+    }
+  }
+
+  return createPortal(
+    <AnimatePresence>
+      {open && (
+        <motion.div
+          className="ns__drawer-scrim"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1, transition: { duration: motionTokens.duration.standard } }}
+          exit={{ opacity: 0, transition: { duration: motionTokens.duration.exit } }}
+          onPointerDown={(e) => { if (e.target === e.currentTarget) onClose() }}
+        >
+          <motion.aside
+            ref={panel}
+            className="ns__drawer"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={`${id}-title`}
+            onKeyDown={onKey}
+            initial={reduce ? { opacity: 0 } : { x: '100%' }}
+            animate={reduce ? { opacity: 1 } : { x: 0, transition: motionTokens.spring.smooth }}
+            exit={reduce ? { opacity: 0 } : { x: '100%', transition: { duration: motionTokens.duration.exit } }}
+          >
+            <div className="ns__drawer-head">
+              <h2 id={`${id}-title`} className="dialog__title">Namespace details</h2>
+              <div className="ns__drawer-actions">
+                {!editing && <Button variant="ghost" className="h-auto ns__btn" onClick={onEdit}><IconEdit /> Edit</Button>}
+                <Button variant="ghost" className="h-auto dialog__close" aria-label="Close details" onClick={onClose}><IconClose /></Button>
+              </div>
+            </div>
+
+            <dl className="ns__drawer-list">
+              <div><dt>Namespace ID</dt><dd className="ns__mono">{fakeUuid(row.id)}</dd></div>
+              <div><dt>Name</dt><dd>{row.id}</dd></div>
+              <div><dt>Owner</dt><dd>rfpravin@kaartech.com</dd></div>
+              <div>
+                <dt>Status</dt>
+                <dd><span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status === 'Active' && <IconCheck />} {row.status}</span></dd>
+              </div>
+              <div>
+                <dt>Knowledge graph health</dt>
+                <dd>
+                  {degraded
+                    ? <span className="ns__status ns__status--bad"><IconError /> Degraded</span>
+                    : <span className="ns__status ns__status--active"><IconCheck /> Healthy</span>}
+                </dd>
+              </div>
+              <div><dt>Sources</dt><dd className="ns__num">{row.sources}</dd></div>
+              <div><dt>Created</dt><dd>{fmtLong(row.created)}</dd></div>
+              <div><dt>Updated</dt><dd>{fmtLong(row.updated)}</dd></div>
+              <div>
+                <dt><label htmlFor={`${id}-desc`}>Description</label></dt>
+                <dd>
+                  {editing
+                    ? <Input id={`${id}-desc`} className="h-auto ns__input" value={desc} placeholder="Add a short description" onChange={(e) => setDesc(e.target.value)} />
+                    : (row.description || '—')}
+                </dd>
+              </div>
+            </dl>
+
+            {editing && (
+              <div className="ns__drawer-foot">
+                <Button variant="ghost" className="h-auto ns__btn" onClick={onCancel}>Cancel</Button>
+                <Button variant="ghost" className="h-auto ns__btn ns__btn--primary" onClick={onSave}>Save changes</Button>
+              </div>
+            )}
+          </motion.aside>
+        </motion.div>
+      )}
+    </AnimatePresence>,
+    document.body,
+  )
+}
+
 function Detail({ row, onSave }: { row: Row; onSave: (description: string) => void }) {
   const [tab, setTab] = useState('sources')
+  const [panel, setPanel] = useState(false)
   const [editing, setEditing] = useState(false)
   const [desc, setDesc] = useState(row.description)
   const [note, setNote] = useState('')
   const degraded = row.id === 'ontologyvskb'
   const sources = sourcesFor(row)
 
+  const closePanel = () => { setPanel(false); setEditing(false); setDesc(row.description) }
+
   return (
     <section className="ns" aria-labelledby="ns-detail-title">
       <header className="ns__head">
-        <div><h1 id="ns-detail-title" className="ns__title">{row.name}</h1></div>
+        <div className="ns__titleblock">
+          <div className="ns__titlerow">
+            <h1 id="ns-detail-title" className="ns__title">{row.name}</h1>
+            <span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status === 'Active' && <IconCheck />} {row.status}</span>
+            {degraded && <span className="ns__status ns__status--bad"><IconError /> Degraded</span>}
+          </div>
+          <Button variant="ghost" className="h-auto ns__btn ns__btn--link ns__btn--under" aria-haspopup="dialog" aria-expanded={panel} onClick={() => setPanel(true)}>View more</Button>
+        </div>
         <div className="ns__toolbar">
-          {editing ? (
-            <>
-              <Button variant="ghost" className="h-auto ns__btn" onClick={() => { setEditing(false); setDesc(row.description) }}>Cancel</Button>
-              <Button variant="ghost" className="h-auto ns__btn ns__btn--primary" onClick={() => { onSave(desc.trim()); setEditing(false); setNote('Namespace updated.') }}>Save changes</Button>
-            </>
-          ) : (
-            <>
-              <Button variant="ghost" className="h-auto ns__btn" onClick={() => setEditing(true)}><IconEdit /> Edit</Button>
-              <Button variant="ghost" className="h-auto ns__btn" onClick={() => setNote('Permissions are managed by your workspace admin.')}><IconLock /> Permissions</Button>
-            </>
-          )}
+          <Button variant="ghost" className="h-auto ns__btn" onClick={() => { setEditing(true); setPanel(true) }}><IconEdit /> Edit</Button>
+          <Button variant="ghost" className="h-auto ns__btn" onClick={() => setNote('Permissions are managed by your workspace admin.')}><IconLock /> Permissions</Button>
         </div>
       </header>
       <p className="ns__note ns__note--solo" role="status" aria-live="polite">{note}</p>
 
-      <div className="ns__card ns__summary">
-        <h2 className="ns__card-title">Summary</h2>
-        <dl className="ns__grid">
-          <div><dt>Namespace ID</dt><dd>{fakeUuid(row.id)}</dd></div>
-          <div><dt>Name</dt><dd>{row.id}</dd></div>
-          <div><dt>Owner</dt><dd>rfpravin@kaartech.com</dd></div>
-          <div>
-            <dt>Status</dt>
-            <dd><span className={`ns__status ns__status--${row.status.toLowerCase()}`}>{row.status === 'Active' && <IconCheck />} {row.status}</span></dd>
-          </div>
-          <div>
-            <dt>Knowledge graph health</dt>
-            <dd>
-              {degraded
-                ? <span className="ns__status ns__status--bad"><IconError /> Degraded</span>
-                : <span className="ns__status ns__status--active"><IconCheck /> Healthy</span>}
-            </dd>
-          </div>
-          <div><dt>Sources</dt><dd className="ns__num">{row.sources}</dd></div>
-          <div><dt>Created</dt><dd>{fmtLong(row.created)}</dd></div>
-          <div><dt>Updated</dt><dd>{fmtLong(row.updated)}</dd></div>
-          <div>
-            <dt><label htmlFor="ns-d-desc">Description</label></dt>
-            <dd>
-              {editing
-                ? <Input id="ns-d-desc" className="h-auto ns__input" value={desc} placeholder="Add a short description" onChange={(e) => setDesc(e.target.value)} />
-                : (row.description || '—')}
-            </dd>
-          </div>
-        </dl>
-      </div>
+      <DetailPanel
+        open={panel}
+        row={row}
+        degraded={degraded}
+        editing={editing}
+        desc={desc}
+        setDesc={setDesc}
+        onClose={closePanel}
+        onEdit={() => setEditing(true)}
+        onCancel={() => { setEditing(false); setDesc(row.description) }}
+        onSave={() => { onSave(desc.trim()); setEditing(false); setNote('Namespace updated.') }}
+      />
 
       <Tabs value={tab} onValueChange={setTab} className="ns__tabs">
         <TabsList aria-label="Namespace sections">
@@ -144,7 +231,7 @@ function Detail({ row, onSave }: { row: Row; onSave: (description: string) => vo
                     <tr key={s.name}>
                       <td><span className="ns__name">{s.name}</span></td>
                       <td>{s.type}</td>
-                      <td><span className="ns__status ns__status--info"><IconInfo /> {s.status}</span></td>
+                      <td><span className={`ns__status ns__status--${s.status === 'Completed' ? 'done' : s.status === 'Processing' ? 'run' : 'fail'}`}>{s.status === 'Completed' ? <IconCheck /> : s.status === 'Processing' ? <IconInfo /> : <IconError />} {s.status}</span></td>
                       <td className="ns__num">{s.tables}</td>
                     </tr>
                   ))}
@@ -154,10 +241,9 @@ function Detail({ row, onSave }: { row: Row; onSave: (description: string) => vo
           </>
         )}
         {tab === 'ontologies' && (
-          <div className="ns__empty-block">
-            <h2 className="ns__card-title">Ontologies</h2>
-            <p>No ontologies in this namespace yet. Run Induction on a source to generate one.</p>
-          </div>
+          <EmptyState art="graph" title="No ontologies yet">
+            Run Induction on a source in this namespace and the ontology it builds will be filed here.
+          </EmptyState>
         )}
         {tab === 'metrics' && (
           <>
@@ -349,10 +435,7 @@ export default function Namespaces({ detail, onDetail }: Props) {
   return (
     <section className="ns" aria-labelledby="ns-title">
       <header className="ns__head">
-        <div>
-          <h1 id="ns-title" className="ns__title">Namespaces <span className="ns__count">({rows.length})</span></h1>
-          <p className="ns__sub">Namespaces partition the semantic graph into isolated scopes. Each namespace has its own data sources, ontology, and access policies.</p>
-        </div>
+        <PageTitle id="ns-title" title="Namespaces" count={rows.length} help="namespaces" />
         <div className="ns__toolbar">
           <div className="ns__menu">
             <Button
@@ -445,7 +528,14 @@ export default function Namespaces({ detail, onDetail }: Props) {
             {load === 'ready' && shown.length === 0 && (
               <tr>
                 <td colSpan={6} className="ns__empty">
-                  No namespaces match. Clear the search or choose another status.
+                  <EmptyState
+                    art="loupe"
+                    compact
+                    title="No namespaces match"
+                    action={<Button variant="ghost" className="h-auto ns__btn" onClick={() => { setQuery(''); setStatusFilter('all') }}>Clear search and filter</Button>}
+                  >
+                    Try a different name, or show every status.
+                  </EmptyState>
                 </td>
               </tr>
             )}
