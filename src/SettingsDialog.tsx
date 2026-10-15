@@ -15,9 +15,11 @@ type Props = {
   onMascot: (id: MascotId) => void
   showMascot: boolean
   onShowMascot: (on: boolean) => void
+  showLogo: boolean
+  onShowLogo: (on: boolean) => void
 }
 
-export default function SettingsDialog({ open, onClose, mascot, onMascot, showMascot, onShowMascot }: Props) {
+export default function SettingsDialog({ open, onClose, mascot, onMascot, showMascot, onShowMascot, showLogo, onShowLogo }: Props) {
   const reduce = useReducedMotion()
   const panel = useRef<HTMLDivElement>(null)
   const opener = useRef<HTMLElement | null>(null)
@@ -79,6 +81,25 @@ export default function SettingsDialog({ open, onClose, mascot, onMascot, showMa
                 <IconClose />
               </Button>
             </div>
+
+            <section className="dialog__section" aria-labelledby="logo-label">
+              <div className="dialog__row">
+                <div>
+                  <h3 id="logo-label" className="dialog__h">Show logo</h3>
+                  <p className="dialog__p">Show the large KEOS logo above the greeting on the home screen.</p>
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={showLogo}
+                  aria-label="Show logo"
+                  className={`switch${showLogo ? ' is-on' : ''}`}
+                  onClick={() => onShowLogo(!showLogo)}
+                >
+                  <span className="switch__thumb" />
+                </button>
+              </div>
+            </section>
 
             <section className="dialog__section" aria-labelledby="mascot-label">
               <div className="dialog__row">

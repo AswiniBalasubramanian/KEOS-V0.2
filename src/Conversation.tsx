@@ -29,7 +29,7 @@ import ProfileMenu from './ProfileMenu'
 import SettingsDialog from './SettingsDialog'
 import Walkthrough from './Walkthrough'
 import type { Step } from './Walkthrough'
-import { MASCOTS, loadMascot, saveMascot, loadShowMascot, saveShowMascot } from './mascots'
+import { MASCOTS, loadMascot, saveMascot, loadShowMascot, saveShowMascot, loadShowLogo, saveShowLogo } from './mascots'
 import type { MascotId } from './mascots'
 import './Conversation.css'
 import {
@@ -378,6 +378,7 @@ export default function Conversation() {
   const [scope, setScope] = useState<Scope>('project')
   const [mascot, setMascot] = useState<MascotId>(loadMascot)
   const [showMascot, setShowMascot] = useState(loadShowMascot)
+  const [showLogo, setShowLogo] = useState(loadShowLogo)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [tourOpen, setTourOpen] = useState(false)
   const [tourSteps, setTourSteps] = useState<Step[]>(TOUR_STEPS)
@@ -514,17 +515,8 @@ export default function Conversation() {
             </span>
           )}
         </div>
-        {(files.length > 0 || webSearch) && (
+        {files.length > 0 && (
           <ul className="composer__files" aria-label="Attachments">
-            {webSearch && (
-              <li className="composer__file">
-                <IconGlobe className="composer__file-icon" />
-                <span>Web search</span>
-                <Button variant="ghost" className="h-auto composer__file-x" aria-label="Turn off web search" onClick={() => setWebSearch(false)}>
-                  <IconClose />
-                </Button>
-              </li>
-            )}
             {files.map((f, n) => (
               <li key={f.name + n} className="composer__file">
                 <IconFile className="composer__file-icon" />
@@ -554,6 +546,15 @@ export default function Conversation() {
             onPickFiles={() => fileRef.current?.click()}
             onUnavailable={(what) => setToast({ lead: 'Coming soon:', bold: what, sub: 'For now, use “Add files or photos” to upload from this device.' })}
           />
+          {webSearch && (
+            <span className="composer__file composer__file--inline">
+              <IconGlobe className="composer__file-icon" />
+              <span>Web search</span>
+              <Button variant="ghost" className="h-auto composer__file-x" aria-label="Turn off web search" onClick={() => setWebSearch(false)}>
+                <IconClose />
+              </Button>
+            </span>
+          )}
           <Button variant="ghost" className="h-auto composer__smart">
             <IconSpark className="composer__smart-icon" />
             <span>Smart</span>
@@ -936,7 +937,7 @@ export default function Conversation() {
             </>
           ) : (
             <div className="convo__inner">
-              <Logo3D className="convo__logo3d" size={84} theme={theme === 'dark' ? 'dark' : 'light'} />
+              {showLogo && <Logo3D className="convo__logo3d" size={84} theme={theme === 'dark' ? 'dark' : 'light'} />}
               <h1 className="convo__title">
                 {active === 'codegenie' ? "Halfway there. Let's solve this, Aswini." : greeting.title}
               </h1>
@@ -1143,6 +1144,8 @@ export default function Conversation() {
         mascot={mascot}
         onMascot={(id) => { setMascot(id); saveMascot(id) }}
         showMascot={showMascot}
+        showLogo={showLogo}
+        onShowLogo={(on) => { setShowLogo(on); saveShowLogo(on) }}
         onShowMascot={(on) => { setShowMascot(on); saveShowMascot(on) }}
       />
       <Walkthrough open={tourOpen} steps={tourSteps} onClose={() => setTourOpen(false)} />

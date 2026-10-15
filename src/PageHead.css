@@ -19,4 +19,5 @@
 :root .help__facts { margin: 0; display: flex; flex-direction: column; gap: 14px; }
 :root .help__facts dt { font-size: 13px; font-weight: 500; color: var(--text); }
 :root .help__facts dd { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-3); }
-:root .help__tips { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 6px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+:root .help__tips { list-style: disc; margin: 0; padding-left: 18px; font-size: 13px; line-height: 1.5; color: var(--text-3); }
+:root .help__tips li + li { margin-top: 6px; }

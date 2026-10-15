@@ -40,3 +40,12 @@ export function loadShowMascot(): boolean {
 export function saveShowMascot(on: boolean) {
   try { localStorage.setItem(KEY_SHOW, on ? 'on' : 'off') } catch { /* storage blocked */ }
 }
+
+/* The large glass logo above the greeting. Hidden unless the user turns it on in Personal settings. */
+export function loadShowLogo(): boolean {
+  try { return localStorage.getItem('keos-hero-logo') === 'on' } catch { return false }
+}
+
+export function saveShowLogo(on: boolean) {
+  try { localStorage.setItem('keos-hero-logo', on ? 'on' : 'off') } catch { /* storage blocked */ }
+}

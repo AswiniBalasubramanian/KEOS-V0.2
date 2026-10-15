@@ -573,7 +573,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 8px;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 .composer__smart {
   display: inline-flex;
@@ -1024,8 +1024,10 @@
 .composer__stop { display: block; width: 10px; height: 10px; border-radius: 2px; background: currentColor; }
 
 /* Queue of messages sent while a reply is running */
-.queue { width: 100%; margin-bottom: 8px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-elevated); }
-.queue:not(:has(.queue__list)) { padding: 0; border: 0; background: transparent; margin: 0; }
+/* The queue tucks in behind the prompt box so the two read as one attached piece. */
+.queue { position: relative; z-index: 0; width: 100%; margin-bottom: -16px; padding: 8px 10px 26px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, var(--bg-elevated)); }
+.composer-wrap { position: relative; z-index: 1; }
+.queue:not(:has(.queue__list)) { padding: 0; border: 0; background: transparent; margin: 0 0 8px; }
 .queue__head { display: flex; align-items: center; gap: 12px; padding: 2px 4px 6px; font-size: 12px; font-weight: 500; color: var(--text-3); }
 .queue__head span { flex: 1; }
 .queue__link { padding: 0 4px; font-size: 12px; font-weight: 500; color: var(--text-2); text-decoration: underline; text-underline-offset: 3px; }
