@@ -69,11 +69,13 @@ type Props = {
   big?: boolean
   /** When given, the picked dot is handed to the parent to show its details, instead of a card on the graph. */
   onPick?: (n: PickedNode | null) => void
+  /** A quiet, decorative version: no labels, controls or pointer input, and a see-through background. */
+  bare?: boolean
 }
 
 export type PickedNode = N
 
-export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick }: Props) {
+export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick, bare }: Props) {
   const canvas = useRef<HTMLCanvasElement>(null)
   const wrap = useRef<HTMLDivElement>(null)
   const sig = hubs.map((h) => h.key + h.name + h.rel + h.attrs).join('|')
@@ -219,8 +221,11 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick 
       const COL = quiet
         ? { hub: dark ? '#5b94ec' : '#2b6fd4', rel: dark ? '#6fb3a3' : '#4f9a8a', attr: dark ? '#f08a5d' : '#e8803f' }
         : { hub: dark ? '#5b94ec' : '#2b6fd4', rel: dark ? '#f08a5d' : '#e0663a', attr: dark ? '#9d8cf2' : '#4b3aa6' }
-      ctx.fillStyle = bg
-      ctx.fillRect(0, 0, s.w, s.h)
+      if (bare) ctx.clearRect(0, 0, s.w, s.h)
+      else {
+        ctx.fillStyle = bg
+        ctx.fillRect(0, 0, s.w, s.h)
+      }
 
       for (const n of nodes) project(n)
       if (nbrFocus !== focus) {
@@ -321,8 +326,8 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick 
         ctx.globalAlpha = 1
       }
       if (s.hover) label(s.hover, P[s.hover.i], true)
-      if (s.zoom >= 0.6) for (const n of hubOrder) { const p = P[n.i]; if (p.z > -0.25) label(n, p, true) }
-      if (s.zoom >= 1.7) {
+      if (!bare && s.zoom >= 0.6) for (const n of hubOrder) { const p = P[n.i]; if (p.z > -0.25) label(n, p, true) }
+      if (!bare && s.zoom >= 1.7) {
         const sats = order.filter((n) => n.kind !== 'hub' && P[n.i].z > -0.05 && (focus ? n.hub === focus : P[n.i].z > (s.zoom >= 2.4 ? 0 : 0.45)))
         for (let i = sats.length - 1; i >= 0; i--) label(sats[i], P[sats[i].i], false)
       }
@@ -434,7 +439,7 @@ export default function Sphere3D({ hubs, links, selected, onSelect, big, onPick 
   const reset = () => { const s = st.current; s.zoomTarget = 1; s.toYaw = null; s.toPitch = null; s.vyaw = 0; setZoomUi(1); onSelect(null) }
 
   return (
-    <div className={`ind__canvas${big ? ' is-big' : ''}`}>
+    <div className={`ind__canvas${big ? ' is-big' : ''}${bare ? ' is-bare' : ''}`} aria-hidden={bare || undefined}>
       <div className="ind__stage" ref={wrap}>
       <canvas ref={canvas} className="ind__sphere" role="img" aria-label={`Spherical network of ${hubs.length} classes and their relationships and attributes. Drag to rotate, scroll to zoom. Use the class list below the graph to select one with the keyboard.`} />
       {picked && !onPick && <Details node={picked} hubs={hubs} links={links} onClose={() => { setPicked(null); onSelect(null) }} />}

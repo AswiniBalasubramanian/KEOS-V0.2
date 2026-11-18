@@ -1,5 +1,34 @@
+import { useCallback, useState } from 'react'
 import Conversation from './Conversation'
+import Login from './Login'
+import SessionGuard from './SessionGuard'
+import { clearSignIn, lastWho, saveSignIn, signedInAs } from './auth'
+import type { Notice } from './auth'
 
 export default function App() {
-  return <Conversation />
+  const [who, setWho] = useState<string | null>(signedInAs)
+  const [notice, setNotice] = useState<Notice | null>(null)
+  const [warn, setWarn] = useState(0)
+  const states = new URLSearchParams(window.location.search).has('states')
+
+  const leave = useCallback((why: Notice) => { clearSignIn(); setNotice(why); setWho(null) }, [])
+  const expire = useCallback(() => leave('expired'), [leave])
+  const signOut = useCallback(() => leave('signedout'), [leave])
+
+  if (!who) return <Login notice={notice} lastWho={lastWho()} onSignIn={(w) => { saveSignIn(w); setNotice(null); setWho(w) }} />
+  return (
+    <>
+      <Conversation onSignOut={signOut} />
+      <SessionGuard onExpire={expire} onSignOut={signOut} previewWarning={warn} />
+      {states && (
+        <details className="states" open>
+          <summary>Prototype states</summary>
+          <div className="states__grid">
+            <button type="button" onClick={() => setWarn((n) => n + 1)}>Session warning</button>
+            <button type="button" onClick={expire}>Session expired</button>
+          </div>
+        </details>
+      )}
+    </>
+  )
 }

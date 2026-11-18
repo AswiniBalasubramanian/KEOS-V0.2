@@ -160,7 +160,7 @@ const TOUR_STEPS: Step[] = [
   { target: '.profile__trigger', title: 'Make it yours', body: 'Open Personal settings to pick a mascot, or replay this tour whenever you like.' },
 ]
 
-export default function Conversation() {
+export default function Conversation({ onSignOut }: { onSignOut: () => void }) {
   const [expanded, setExpanded] = useState(() => window.innerWidth > 640)
   const [ontologyOpen, setOntologyOpen] = useState(true)
   const [inboxOpen, setInboxOpen] = useState(false)
@@ -718,7 +718,7 @@ export default function Conversation() {
 
         <div className="sidebar__footer">
           <div className="footer-row">
-          <ProfileMenu onWalkthrough={() => startTour('app')} onSettings={() => setSettingsOpen(true)}>
+          <ProfileMenu onWalkthrough={() => startTour('app')} onSettings={() => setSettingsOpen(true)} onSignOut={onSignOut}>
             <div className="user">
               <span className="user__avatar">AB</span>
               <span className="user__text">

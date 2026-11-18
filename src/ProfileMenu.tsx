@@ -2,16 +2,17 @@ import { useEffect, useId, useRef, useState } from 'react'
 import type { KeyboardEvent, ReactNode } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { motionTokens } from '@/components/arc/lib/motion-tokens'
-import { IconRoute, IconSliders } from './icons'
+import { IconRoute, IconSignOut, IconSliders } from './icons'
 import NewBadge from './NewBadge'
 
 type Props = {
   children: ReactNode
   onWalkthrough: () => void
   onSettings: () => void
+  onSignOut: () => void
 }
 
-export default function ProfileMenu({ children, onWalkthrough, onSettings }: Props) {
+export default function ProfileMenu({ children, onWalkthrough, onSettings, onSignOut }: Props) {
   const [open, setOpen] = useState(false)
   const reduce = useReducedMotion()
   const root = useRef<HTMLDivElement>(null)
@@ -44,6 +45,7 @@ export default function ProfileMenu({ children, onWalkthrough, onSettings }: Pro
   const items = [
     { label: 'Walkthrough', hint: 'A quick tour of KEOS', Icon: IconRoute, run: onWalkthrough, isNew: true },
     { label: 'Personal settings', hint: 'Mascot and preferences', Icon: IconSliders, run: onSettings, isNew: false },
+    { label: 'Sign out', hint: 'End this session', Icon: IconSignOut, run: onSignOut, isNew: false },
   ]
 
   return (

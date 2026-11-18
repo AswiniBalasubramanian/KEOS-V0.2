@@ -1,0 +1,95 @@
+/* Steps around sign-in: notices, badges, one-time code, password rules, trial box, design-review panel. */
+:root .login__top { margin-top: 18px; }
+:root .login__notice { display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 12px 14px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--hover); font-size: 14px; line-height: 1.45; color: var(--text-2); }
+:root .login__notice svg { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; }
+:root .login__notice b { font-weight: 500; color: var(--text); font-variant-numeric: tabular-nums; }
+:root .login__notice--ok { border-color: rgb(6 118 71 / 0.35); background: rgb(6 118 71 / 0.08); color: #067647; }
+:root .login__notice--error { border-color: rgb(217 45 32 / 0.3); background: rgb(217 45 32 / 0.08); color: #b42318; }
+:root[data-theme='dark'] .login__notice--ok { color: #75e0a7; }
+:root[data-theme='dark'] .login__notice--error { color: #f4a09a; }
+
+:root .login__badge { display: grid; place-items: center; width: 48px; height: 48px; margin: 0 auto 16px; border-radius: 50%; background: var(--active); color: var(--text); }
+:root .login__badge svg { width: 24px; height: 24px; }
+:root .login__badge--brand { background: var(--bg-elevated); border: 1px solid var(--border-strong); }
+:root .login__badge--ok { background: rgb(6 118 71 / 0.12); color: #067647; }
+:root .login__badge--error { background: rgb(217 45 32 / 0.1); color: #b42318; }
+:root[data-theme='dark'] .login__badge--ok { color: #75e0a7; }
+:root[data-theme='dark'] .login__badge--error { color: #f4a09a; }
+:root .login__title--left, :root .login__sub--left { text-align: center; }
+:root .login__sub--left { max-width: 44ch; margin-left: auto; margin-right: auto; }
+:root .login__form--tight { margin-top: 24px; gap: 16px; }
+:root .login__link--plain { display: inline-flex; align-items: center; gap: 6px; font-weight: 400; color: var(--text-3); text-decoration: none; }
+:root .login__link--plain:hover { color: var(--text); }
+:root .login__link--plain svg { width: 16px; height: 16px; }
+:root .login__input--mono { font-family: var(--font-mono); letter-spacing: 0.1em; text-align: center; }
+:root .login__status { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 20px; margin: 0; font-size: 13px; color: var(--text-3); }
+:root .login__status svg { width: 16px; height: 16px; }
+:root .login__ok { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; color: #067647; }
+:root[data-theme='dark'] .login__ok { color: #75e0a7; }
+:root .login__ok svg { width: 16px; height: 16px; }
+
+:root .otp { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+:root .otp__box { width: 100%; height: 56px; padding: 0; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-elevated); text-align: center; font-family: var(--font-mono); font-size: 22px; font-weight: 500; color: var(--text); caret-color: var(--text); }
+:root .otp__box:focus-visible { border-color: var(--text); outline: none; box-shadow: 0 0 0 3px var(--active); }
+:root .otp__box[aria-invalid='true'] { border-color: #b42318; animation: otp-shake 0.3s; }
+:root[data-theme='dark'] .otp__box[aria-invalid='true'] { border-color: #f4a09a; }
+:root .otp__box:disabled { opacity: 0.55; }
+@keyframes otp-shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+:root .login__check { display: flex; align-items: center; gap: 10px; padding: 0; border: 0; background: transparent; font: inherit; font-size: 14px; color: var(--text-2); text-align: left; cursor: pointer; }
+:root .login__checkbox { display: grid; place-items: center; width: 18px; height: 18px; border: 1px solid var(--border-strong); border-radius: 5px; background: var(--bg-elevated); color: var(--on-accent); }
+:root .login__checkbox.is-on { border-color: var(--accent-solid); background: var(--accent-solid); }
+:root .login__checkbox svg { width: 12px; height: 12px; }
+:root .login__check:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; border-radius: 4px; }
+:root .login__resend { margin: 0; font-size: 14px; color: var(--text-3); }
+:root .login__sent { color: #067647; }
+:root[data-theme='dark'] .login__sent { color: #75e0a7; }
+
+:root .login__alt { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 4px; }
+:root .login__alt p { margin: 0 0 6px; font-size: 13px; color: var(--text-3); }
+:root .login__alt-btn { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; border: 0; border-radius: 10px; background: transparent; font: inherit; font-size: 14px; font-weight: 500; color: var(--text); text-align: left; cursor: pointer; }
+:root .login__alt-btn:hover { background: var(--hover); }
+:root .login__alt-btn svg { width: 18px; height: 18px; color: var(--text-3); }
+:root .login__demo { margin: 16px 0 0; text-align: center; font-size: 12px; color: var(--text-4); }
+
+:root .login__steps { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+:root .login__steps li { display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-4); }
+:root .login__steps li.is-now { color: var(--text); font-weight: 500; }
+:root .login__steps li.is-done { color: var(--text-3); }
+:root .login__step-dot { display: grid; place-items: center; width: 22px; height: 22px; border: 1px solid var(--border-strong); border-radius: 50%; }
+:root .login__steps li.is-done .login__step-dot { border-color: transparent; background: rgb(6 118 71 / 0.14); color: #067647; }
+:root .login__steps li.is-now .login__step-dot { border-color: var(--text); }
+:root .login__step-dot svg { width: 13px; height: 13px; }
+
+:root .meter { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 4px; }
+:root .meter i { height: 4px; border-radius: 999px; background: var(--active); }
+:root .meter i.is-on.is-1 { background: #b42318; }
+:root .meter i.is-on.is-2 { background: #b54708; }
+:root .meter i.is-on.is-3, :root .meter i.is-on.is-4 { background: #067647; }
+:root .meter__label { margin: 0; font-size: 13px; color: var(--text-3); }
+:root .rules { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+:root .rules li { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-3); }
+:root .rules li.is-ok { color: var(--text); }
+:root .rules__dot { display: grid; place-items: center; width: 16px; height: 16px; border: 1px solid var(--border-strong); border-radius: 50%; }
+:root .rules li.is-ok .rules__dot { border-color: transparent; background: rgb(6 118 71 / 0.14); color: #067647; }
+:root .rules__dot svg { width: 10px; height: 10px; }
+
+/* Trial credentials and the design-review panel */
+:root .trial { margin-top: 24px; padding: 14px 16px; border: 1px dashed var(--border-strong); border-radius: 12px; background: var(--bg-elevated); }
+:root .trial__head { display: flex; align-items: center; justify-content: space-between; font-size: 13px; color: var(--text); }
+:root .trial__head b { font-weight: 500; }
+:root .trial__head .login__link { font-size: 13px; font-weight: 500; color: var(--text); text-decoration: underline; text-underline-offset: 3px; }
+:root .trial dl { display: grid; gap: 6px; margin: 10px 0 0; }
+:root .trial dl div { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; }
+:root .trial dt { color: var(--text-3); }
+:root .trial dd { margin: 0; font-family: var(--font-mono); font-size: 12px; color: var(--text); overflow-wrap: anywhere; text-align: right; }
+:root .trial p { margin: 10px 0 0; font-size: 12px; color: var(--text-4); }
+
+:root .states { position: fixed; right: 12px; bottom: 12px; z-index: 50; max-width: 360px; border: 1px solid var(--border-strong); border-radius: 12px; background: var(--bg-elevated); box-shadow: var(--pop-shadow); font-size: 12px; }
+:root .states summary { padding: 8px 12px; cursor: pointer; font-weight: 500; color: var(--text); }
+:root .states__grid { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 10px 10px; }
+:root .states__grid button { padding: 4px 8px; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--bg); font: inherit; font-size: 12px; color: var(--text-2); cursor: pointer; }
+:root .states__grid button:hover { background: var(--hover); color: var(--text); }
+
+@media (max-width: 480px) { :root .otp { gap: 6px; } :root .otp__box { height: 48px; font-size: 20px; } }
+@media (prefers-reduced-motion: reduce) { :root .otp__box[aria-invalid='true'] { animation: none; } }
