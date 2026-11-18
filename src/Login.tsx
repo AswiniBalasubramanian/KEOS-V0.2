@@ -268,18 +268,6 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
 
               <p className="login__foot">Need an account? <button type="button" className="login__link" onClick={() => go('access')}>Request access</button></p>
 
-              <div className="trial" aria-label="Trial credentials">
-                <div className="trial__head">
-                  <b>Trial credentials</b>
-                  <button type="button" className="login__link login__link--plain" onClick={() => { setWho(TRIAL.email); setPassword(TRIAL.password); setErrors({}); setBanner('') }}>Fill in</button>
-                </div>
-                <dl>
-                  <div><dt>Email</dt><dd>{TRIAL.email}</dd></div>
-                  <div><dt>Password</dt><dd>{TRIAL.password}</dd></div>
-                  <div><dt>Verification code</dt><dd>123456</dd></div>
-                </dl>
-                <p>This is a prototype, so any password of six or more characters also works.</p>
-              </div>
             </>
           )}
 
@@ -324,14 +312,28 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
         </div>
       </main>
 
-      {showStates && (
-        <details className="states" open>
-          <summary>Prototype states</summary>
-          <div className="states__grid">
-            {STATES.map((st) => <button key={st.key} type="button" onClick={() => preview(st.key)}>{st.label}</button>)}
+      <div className="dock">
+        <details className="states trial">
+          <summary>Trial credentials</summary>
+          <dl className="trial__list">
+            <div><dt>Email</dt><dd>{TRIAL.email}</dd></div>
+            <div><dt>Password</dt><dd>{TRIAL.password}</dd></div>
+            <div><dt>Verification code</dt><dd>123456</dd></div>
+          </dl>
+          <div className="trial__foot">
+            <p>Prototype only. Any password of six or more characters also works.</p>
+            <button type="button" onClick={() => { go('signin'); setWho(TRIAL.email); setPassword(TRIAL.password) }}>Fill in</button>
           </div>
         </details>
-      )}
+        {showStates && (
+          <details className="states" open>
+            <summary>Prototype states</summary>
+            <div className="states__grid">
+              {STATES.map((st) => <button key={st.key} type="button" onClick={() => preview(st.key)}>{st.label}</button>)}
+            </div>
+          </details>
+        )}
+      </div>
     </div>
   )
 }

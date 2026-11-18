@@ -8,7 +8,7 @@
 :root .session__bar { height: 4px; margin: 20px 0 0; border-radius: 999px; background: var(--active); overflow: hidden; }
 :root .session__bar i { display: block; height: 100%; border-radius: inherit; background: var(--text); transition: width 1s linear; }
 :root .session__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 22px; }
-:root .session__btn { height: 40px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--bg-elevated); font-size: 14px; font-weight: 500; color: var(--text); }
+:root .session__btn { display: inline-flex; align-items: center; justify-content: center; padding: 0 14px; text-align: center; height: 40px; border: 1px solid var(--border-strong); border-radius: 10px; background: var(--bg-elevated); font-size: 14px; font-weight: 500; color: var(--text); }
 :root .session__btn:hover { background: var(--hover); }
 :root .session__btn--primary { border-color: transparent; background: var(--accent-solid); color: var(--on-accent); }
 :root .session__btn--primary:hover { background: var(--accent-solid-hover); }
