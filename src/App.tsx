@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react'
 import Conversation from './Conversation'
 import Login from './Login'
+import Portal from './Portal'
 import SessionGuard from './SessionGuard'
 import { clearSignIn, lastWho, saveSignIn, signedInAs } from './auth'
 import type { Notice } from './auth'
 
 export default function App() {
   const [who, setWho] = useState<string | null>(signedInAs)
+  const [chosen, setChosen] = useState<boolean>(() => { try { return sessionStorage.getItem('keos-product') === 'keos' } catch { return false } })
   const [notice, setNotice] = useState<Notice | null>(null)
   const [warn, setWarn] = useState(0)
   const openStates = new URLSearchParams(window.location.search).has('states')
@@ -15,7 +17,10 @@ export default function App() {
   const expire = useCallback(() => leave('expired'), [leave])
   const signOut = useCallback(() => leave('signedout'), [leave])
 
-  if (!who) return <Login notice={notice} lastWho={lastWho()} onSignIn={(w) => { saveSignIn(w); setNotice(null); setWho(w) }} />
+  const pick = (on: boolean) => { setChosen(on); try { if (on) sessionStorage.setItem('keos-product', 'keos'); else sessionStorage.removeItem('keos-product') } catch { /* storage blocked */ } }
+
+  if (!who && !chosen) return <Portal onOpenKeos={() => pick(true)} />
+  if (!who) return <Login onBack={() => pick(false)} notice={notice} lastWho={lastWho()} onSignIn={(w) => { saveSignIn(w); setNotice(null); setWho(w) }} />
   return (
     <>
       <Conversation onSignOut={signOut} />

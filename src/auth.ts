@@ -13,8 +13,8 @@ export function signedInAs(): string | null {
 export function saveSignIn(who: string) {
   try {
     sessionStorage.setItem(KEY, who)
-    // a Microsoft sign-in has no username to bring back next time
-    if (who !== 'Microsoft account') localStorage.setItem(LAST, who)
+    // an SSO sign-in has no username to bring back next time
+    if (who !== 'KaarTech SSO') localStorage.setItem(LAST, who)
   } catch { /* storage blocked: the session lasts until reload */ }
 }
 
@@ -26,7 +26,7 @@ export function clearSignIn() {
 export function lastWho(): string {
   try {
     const v = localStorage.getItem(LAST) ?? ''
-    return v === 'Microsoft account' ? '' : v
+    return v === 'KaarTech SSO' || v === 'Microsoft account' ? '' : v
   } catch { return '' }
 }
 

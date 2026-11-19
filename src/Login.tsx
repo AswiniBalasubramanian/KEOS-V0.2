@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import Tip from './Tip'
-import { IconCheck, IconEye, IconEyeOff, IconMoon, IconSpinner, IconSun, IconWarning } from './icons'
+import { IconBack, IconCheck, IconEye, IconEyeOff, IconMoon, IconSpinner, IconSun, IconWarning } from './icons'
 import { MfaStep, Notice as Banner, ResetDone, ResetExpired, ResetStep, SsoStep } from './AuthFlows'
 import type { MfaMethod, SsoStatus } from './AuthFlows'
 import { isTrusted, trustDevice } from './auth'
@@ -27,15 +27,8 @@ const initialTheme = (): Theme => {
   return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
 }
 
-/* The four-square Microsoft mark in its own brand colours. */
-const MicrosoftMark = () => (
-  <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
-    <rect x="1" y="1" width="7.5" height="7.5" fill="#F25022" />
-    <rect x="9.5" y="1" width="7.5" height="7.5" fill="#7FBA00" />
-    <rect x="1" y="9.5" width="7.5" height="7.5" fill="#00A4EF" />
-    <rect x="9.5" y="9.5" width="7.5" height="7.5" fill="#FFB900" />
-  </svg>
-)
+/* The KaarTech drop and ripple, cropped from the logo so it reads at icon size. */
+const KaarTechMark = () => <span className="login__kt" aria-hidden="true" />
 
 const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 const looksLikeEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
@@ -79,6 +72,7 @@ const NOTICE_TEXT: Record<Notice, string> = {
 const TRIAL = { email: 'aswini@kaartech.com', password: 'Keos@2026' }
 
 const STATES: { key: string; label: string }[] = [
+  { key: 'portal', label: 'Product page' },
   { key: 'signin', label: 'Sign in' },
   { key: 'signin-error', label: 'Wrong password' },
   { key: 'expired', label: 'Session expired' },
@@ -97,7 +91,7 @@ const STATES: { key: string; label: string }[] = [
   { key: 'resetdone', label: 'Reset: done' },
 ]
 
-export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: string) => void; notice?: Notice | null; lastWho?: string }) {
+export default function Login({ onSignIn, notice, lastWho, onBack }: { onSignIn: (who: string) => void; notice?: Notice | null; lastWho?: string; onBack?: () => void }) {
   const [theme, setTheme] = useState<Theme>(initialTheme)
   const [view, setView] = useState<View>('signin')
   const [who, setWho] = useState(lastWho ?? '')
@@ -128,6 +122,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
 
   // jump straight to a state, for design review (add ?states to the address)
   const preview = (name: string) => {
+    if (name === 'portal') { onBack?.(); return }
     const demo = 'aswini@kaartech.com'
     go('signin')
     if (name !== 'signin' && name !== 'signin-error' && name !== 'expired') setWho((w) => w || demo)
@@ -217,13 +212,13 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
 
           <div className="login__story">
             <p className="login__pill"><i /> Enterprise intelligence</p>
-            <h2>One workspace for every enterprise decision</h2>
-            <p className="login__lead">Your pods, SAP data and documents in one governed layer.</p>
+            <h2>The Intelligence Operating System for Enterprise.</h2>
+            <p className="login__lead">Unify enterprise data, knowledge, AI models and intelligent agents in one governed ecosystem.</p>
           </div>
 
           <div className="login__meta">
-            <div><span>Connectors</span><b>SAP, historians, documents</b></div>
-            <div><span>Assurance</span><b>Responsible AI checks</b></div>
+            <div><span>Intelligence</span><b>Enterprise knowledge &amp; AI</b></div>
+            <div><span>Orchestration</span><b>Agents &amp; workflows</b></div>
           </div>
 
           <p className="login__legal">© 2026 KaarTech</p>
@@ -231,6 +226,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
       </aside>
 
       <main className="login__main">
+        {onBack && <button type="button" className="login__back" onClick={onBack}><IconBack /> All products</button>}
         <div className="login__card" ref={card}>
 
           {view === 'signin' && (
@@ -263,7 +259,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
               <div className="login__divider"><span>Or continue with</span></div>
 
               <Button type="button" variant="ghost" className="h-auto login__secondary login__sso" disabled={working} onClick={() => social('microsoft')}>
-                {busy === 'microsoft' ? <IconSpinner className="login__spin" /> : <MicrosoftMark />} Continue with Microsoft
+                {busy === 'microsoft' ? <IconSpinner className="login__spin" /> : <KaarTechMark />} Continue with KaarTech SSO
               </Button>
 
               <p className="login__foot">Need an account? <button type="button" className="login__link" onClick={() => go('access')}>Request access</button></p>
@@ -304,7 +300,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
             </>
           )}
 
-          {view === 'sso' && <SsoStep key={flowKey} initial={flow.sso} onDone={() => onSignIn('Microsoft account')} onBack={() => go('signin')} onRequestAccess={() => go('access')} />}
+          {view === 'sso' && <SsoStep key={flowKey} initial={flow.sso} onDone={() => onSignIn('KaarTech SSO')} onBack={() => go('signin')} onRequestAccess={() => go('access')} />}
           {view === 'mfa' && <MfaStep key={flowKey} who={who} initialMethod={flow.method} initialLocked={flow.locked} onBack={() => go('signin')} onVerified={(remember) => { if (remember) trustDevice(who.trim()); onSignIn(who.trim()) }} />}
           {view === 'reset' && <ResetStep key={flowKey} who={who} onBack={() => go('signin')} onDone={() => setView('resetdone')} />}
           {view === 'resetdone' && <ResetDone onContinue={() => { go('signin'); setLocalNotice('reset') }} />}
@@ -312,7 +308,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
         </div>
       </main>
 
-      <div className="dock">
+      <div className="login__dock">
         <details className="states trial">
           <summary>Trial credentials</summary>
           <dl className="trial__list">

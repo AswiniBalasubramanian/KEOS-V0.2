@@ -75,8 +75,8 @@
 :root .rules__dot svg { width: 10px; height: 10px; }
 
 /* Trial credentials and the design-review panels sit together in the bottom corner */
-:root .dock { position: fixed; right: 12px; bottom: 12px; z-index: 50; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; }
-:root .dock .states { position: static; right: auto; bottom: auto; }
+:root .login__dock { position: fixed; right: 12px; bottom: 12px; z-index: 50; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; max-width: min(360px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); overflow-y: auto; }
+:root .login__dock .states { position: static; right: auto; bottom: auto; }
 :root .trial__list { display: grid; gap: 6px; margin: 0; padding: 0 12px; }
 :root .trial__list div { display: flex; justify-content: space-between; gap: 16px; font-size: 12px; }
 :root .trial__list dt { color: var(--text-3); }
@@ -93,3 +93,13 @@
 
 @media (max-width: 480px) { :root .otp { gap: 6px; } :root .otp__box { height: 48px; font-size: 20px; } }
 @media (prefers-reduced-motion: reduce) { :root .otp__box[aria-invalid='true'] { animation: none; } }
+
+/* The KaarTech drop and ripple, cropped from the full logo. */
+:root .login__kt { display: inline-block; width: 26px; height: 18px; background: url(/assets/droplet.png) no-repeat -9px -6.6px / 42.4px 42.4px; flex-shrink: 0; }
+:root .login__kt--lg { width: 30px; height: 21px; background-position: -10.4px -7.6px; background-size: 49px 49px; }
+
+/* Back to the Ktern page */
+:root .login__back { position: absolute; top: 45px; left: 24px; z-index: 3; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 0; border-radius: 8px; background: transparent; font: inherit; font-size: 14px; color: var(--text-3); cursor: pointer; }
+:root .login__back:hover { background: var(--active); color: var(--text); }
+:root .login__back:focus-visible { outline: 2px solid var(--text); outline-offset: 2px; }
+:root .login__back svg { width: 16px; height: 16px; }

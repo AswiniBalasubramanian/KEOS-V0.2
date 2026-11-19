@@ -240,14 +240,12 @@ export function SsoStep({ onDone, onBack, onRequestAccess, initial = 'redirect' 
 
   if (status === 'redirect' || status === 'checking') {
     const step = status === 'redirect' ? 0 : 1
-    const steps = ['Contacting Microsoft', 'Checking your access', 'Opening KEOS']
+    const steps = ['Contacting KaarTech SSO', 'Checking your access', 'Opening KEOS']
     return (
       <div>
-        <span className="login__badge login__badge--brand" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 18 18"><rect x="1" y="1" width="7.5" height="7.5" fill="#F25022" /><rect x="9.5" y="1" width="7.5" height="7.5" fill="#7FBA00" /><rect x="1" y="9.5" width="7.5" height="7.5" fill="#00A4EF" /><rect x="9.5" y="9.5" width="7.5" height="7.5" fill="#FFB900" /></svg>
-        </span>
-        <h1 className="login__title login__title--left">Taking you to Microsoft</h1>
-        <p className="login__sub login__sub--left">Sign in with your KaarTech account. Microsoft handles your password and two-step verification, so you will not be asked again here.</p>
+        <span className="login__badge login__badge--brand" aria-hidden="true"><span className="login__kt login__kt--lg" /></span>
+        <h1 className="login__title login__title--left">Taking you to KaarTech SSO</h1>
+        <p className="login__sub login__sub--left">Sign in with your KaarTech account. Your company sign-in handles your password and two-step verification, so you will not be asked again here.</p>
         <ol className="login__steps" aria-live="polite">
           {steps.map((s, i) => (
             <li key={s} className={i < step ? 'is-done' : i === step ? 'is-now' : ''}>
@@ -262,9 +260,9 @@ export function SsoStep({ onDone, onBack, onRequestAccess, initial = 'redirect' 
   }
 
   const copy = {
-    cancelled: { title: 'Sign-in was cancelled', text: 'You closed the Microsoft window before finishing. Nothing was changed.' },
-    noaccess: { title: 'This account cannot use KEOS yet', text: 'You signed in to Microsoft, but your account has not been given access to KEOS. Ask your workspace admin to add you.' },
-    offline: { title: 'We could not reach Microsoft', text: 'Check your connection and try again. If it keeps happening, sign in with your email and password.' },
+    cancelled: { title: 'Sign-in was cancelled', text: 'You closed the KaarTech sign-in window before finishing. Nothing was changed.' },
+    noaccess: { title: 'This account cannot use KEOS yet', text: 'You signed in with KaarTech SSO, but your account has not been given access to KEOS. Ask your workspace admin to add you.' },
+    offline: { title: 'We could not reach KaarTech SSO', text: 'Check your connection and try again. If it keeps happening, sign in with your email and password.' },
   }[status]
 
   return (

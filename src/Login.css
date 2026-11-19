@@ -39,7 +39,7 @@
 :root .login__grid { position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.55; }
 :root .login__grid i { position: absolute; width: 50px; height: 50px; background: var(--active); border: 1px solid var(--border); opacity: 0; animation: login-twinkle 7s ease-in-out infinite; }
 @keyframes login-twinkle { 0%, 100% { opacity: 0; } 45%, 55% { opacity: 0.9; } }
-:root .login__main { position: relative; z-index: 1; display: grid; place-items: center; padding: 40px 48px; }
+:root .login__main { position: relative; z-index: 1; display: grid; place-items: center; padding: 40px 48px 84px; }
 
 :root .login__theme { position: absolute; top: 45px; right: 44px; z-index: 3; }
 :root .login__icon-btn { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 10px; color: var(--text-3); }

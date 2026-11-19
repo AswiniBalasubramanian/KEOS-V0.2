@@ -1,7 +1,7 @@
 /* Icon set: Phosphor (regular weight), exposed under the app's existing names. */
 import type { Icon as PhosphorIcon } from '@phosphor-icons/react'
 import {
-  ArrowSquareOut, Compass, ArrowBendDownRight, ThumbsDown, ThumbsUp, Globe, PlugsConnected, Paperclip, Buildings, Check, Crosshair, Laptop, ArrowsClockwise, Bell, BookOpen, Key, EnvelopeSimple, DeviceMobile, SignIn, Eye, EyeSlash, SignOut, CircleNotch, WarningCircle, AppleLogo, GoogleLogo, CalendarBlank, CaretDown, CaretUpDown,
+  ArrowSquareOut, Compass, ArrowBendDownRight, ThumbsDown, ThumbsUp, Globe, PlugsConnected, Paperclip, Buildings, Check, Crosshair, Laptop, ArrowsClockwise, Bell, BookOpen, ArrowRight, Key, EnvelopeSimple, DeviceMobile, SignIn, Eye, EyeSlash, SignOut, CircleNotch, WarningCircle, AppleLogo, GoogleLogo, CalendarBlank, CaretDown, CaretUpDown,
   ChartBar, ChatCircle, Clipboard, Clock, Code, Copy, CornersOut,
   DownloadSimple, Export, File, FileText, FolderSimple, FolderSimplePlus, Gavel, Gear,
   GitFork, HardDrives, Image, MagnifyingGlass, Microphone, Minus, Moon,
@@ -109,3 +109,4 @@ export const IconSignIn = I(SignIn)
 export const IconKey = I(Key)
 export const IconMail = I(EnvelopeSimple)
 export const IconPhone = I(DeviceMobile)
+export const IconArrowRight = I(ArrowRight)

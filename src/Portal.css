@@ -1,0 +1,56 @@
+/* The page before sign-in: choose a Ktern product. */
+:root .portal { position: relative; display: flex; flex-direction: column; min-height: 100dvh; background: var(--bg); color: var(--text); overflow: hidden; }
+:root .portal::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(to right, var(--border) 1px, transparent 1px), linear-gradient(to bottom, var(--border) 1px, transparent 1px); background-size: 50px 50px; opacity: 0.5; }
+
+:root .portal__bar { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 22px 32px; }
+:root .portal__brand { display: block; width: 76px; height: 44px; background: url(/assets/droplet.png) no-repeat -6.2px -11.5px / 69px 69px; }
+:root[data-theme='dark'] .portal__brand { filter: grayscale(1) brightness(0) invert(1); }
+:root .portal__icon-btn { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 10px; color: var(--text-3); }
+:root .portal__icon-btn:hover { background: var(--active); color: var(--text); }
+:root .portal__icon-btn svg { width: 18px; height: 18px; }
+
+:root .portal__main { position: relative; z-index: 1; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px 24px 56px; text-align: center; }
+:root .portal__eyebrow { margin: 0; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-3); }
+:root .portal__title { margin: 12px 0 0; font-family: var(--font-heading); font-size: 36px; font-weight: 500; letter-spacing: -0.02em; line-height: 1.1; color: var(--text); }
+:root .portal__sub { margin: 10px 0 0; font-size: 16px; color: var(--text-3); }
+
+:root .portal__grid { list-style: none; margin: 40px 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 340px)); gap: 20px; justify-content: center; width: 100%; max-width: 720px; }
+:root .portal__grid > li { display: flex; }
+
+:root .pcard { display: flex; flex-direction: column; width: 100%; padding: 0; border: 1px solid var(--border-strong); border-radius: 16px; background: var(--bg-elevated); text-align: left; font: inherit; color: var(--text); cursor: pointer; overflow: hidden; transition: transform 200ms var(--ease), box-shadow 200ms var(--ease), border-color 200ms var(--ease); }
+:root .pcard:hover { transform: translateY(-3px); border-color: var(--text-4); box-shadow: 0 18px 36px -22px rgb(0 0 0 / 0.35); }
+:root .pcard:focus-visible { outline: 2px solid var(--text); outline-offset: 3px; }
+:root .pcard:active { transform: translateY(-1px); }
+
+:root .pcard__cover { position: relative; display: block; height: 168px; background: #1a0508; overflow: hidden; }
+:root .pcard__cover > img:first-child { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 55% 55%; transition: transform 600ms var(--ease); }
+:root .pcard:hover .pcard__cover > img:first-child { transform: scale(1.04); }
+:root .pcard__cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgb(10 4 6 / 0.55), rgb(10 4 6 / 0.15) 60%, rgb(10 4 6 / 0.5)); }
+:root .pcard__pill { position: absolute; left: 14px; top: 14px; z-index: 1; display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px; border: 1px solid rgb(255 130 90 / 0.5); border-radius: 999px; background: rgb(0 0 0 / 0.4); font-size: 12px; font-weight: 500; color: #fff7f1; }
+:root .pcard__pill i { width: 6px; height: 6px; border-radius: 50%; background: #ff4d3d; }
+:root .pcard__mark { position: absolute; right: 16px; bottom: 14px; z-index: 1; width: 30px; height: 40px; object-fit: contain; filter: grayscale(1) brightness(0) invert(1); }
+
+:root .pcard__body { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px 20px; }
+:root .pcard__name { font-family: var(--font-heading); font-size: 22px; font-weight: 500; letter-spacing: 0.04em; color: var(--text); }
+:root .pcard__tag { font-size: 14px; color: var(--text-2); }
+:root .pcard__text { margin-top: 2px; font-size: 14px; line-height: 1.5; color: var(--text-3); }
+:root .pcard__go { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 14px; font-weight: 500; color: var(--text); }
+:root .pcard__go svg { width: 16px; height: 16px; transition: transform 200ms var(--ease); }
+:root .pcard:hover .pcard__go svg { transform: translateX(4px); }
+
+:root .pcard__cover--ktern { background: #2b0a10; }
+:root .pcard__cover--ktern::after { background: linear-gradient(to bottom, rgb(0 0 0 / 0.25), transparent 60%); }
+:root .pcard__ktern { position: absolute; left: 20px; bottom: 16px; z-index: 1; font-family: var(--font-heading); font-size: 22px; font-weight: 500; letter-spacing: 0.22em; color: #fff7f1; }
+:root .portal__note { min-height: 20px; margin: 20px 0 0; font-size: 14px; color: var(--text-3); }
+
+:root .portal__foot { position: relative; z-index: 1; padding: 0 32px 22px; text-align: center; font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.08em; color: var(--text-4); }
+
+@media (max-width: 760px) {
+  :root .portal__grid { grid-template-columns: minmax(0, 420px); }
+  :root .portal__title { font-size: 28px; }
+  :root .portal__bar { padding: 16px 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  :root .pcard, :root .pcard__cover > img:first-child, :root .pcard__go svg { transition: none; }
+  :root .pcard:hover { transform: none; }
+}
