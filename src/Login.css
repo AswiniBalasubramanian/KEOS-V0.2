@@ -13,7 +13,7 @@
 :root .login__panel { position: relative; min-height: 100dvh; background: #0b0809; color: #fff7f1; overflow: hidden; }
 :root .login__panel-bg { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 55% 60%; }
 :root .login__panel::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgb(10 4 6 / 0.7) 0%, rgb(10 4 6 / 0.5) 42%, rgb(10 4 6 / 0.88) 100%); }
-:root .login__panel-in { position: relative; z-index: 1; display: flex; flex-direction: column; min-height: 100dvh; padding: 36px 44px 28px; }
+:root .login__panel-in { position: relative; z-index: 2; display: flex; flex-direction: column; min-height: 100dvh; padding: 36px 44px 28px; }
 
 :root .login__brand { display: flex; align-items: flex-end; gap: 14px; }
 :root .login__brand-text { display: flex; flex-direction: column; gap: 3px; }
@@ -113,3 +113,7 @@
   :root .login__theme { right: 12px; top: 12px; }
 }
 @media (prefers-reduced-motion: reduce) { :root .login__spin { animation-duration: 2s; } :root .login__grid i { animation: none; opacity: 0.5; } }
+
+/* The same grid over the dark panel: it sits on top of the image, blends into it, and never takes clicks. */
+:root .login__grid--panel { z-index: 1; opacity: 1; mix-blend-mode: screen; background-image: linear-gradient(to right, rgb(255 255 255 / 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgb(255 255 255 / 0.07) 1px, transparent 1px); }
+:root .login__grid--panel i { background: rgb(255 255 255 / 0.1); border-color: rgb(255 255 255 / 0.1); }

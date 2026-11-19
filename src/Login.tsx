@@ -34,20 +34,23 @@ const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 const looksLikeEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)
 
 /* Filled squares on the grid that fade in and out, each on its own rhythm. Fixed positions, so nothing shifts. */
-const SQUARES: { x: number; y: number; delay: number; dur: number }[] = (() => {
-  let t = 7
+type Square = { x: number; y: number; delay: number; dur: number }
+const makeSquares = (seed: number, minX: number, spanX: number, count: number): Square[] => {
+  let t = seed
   const rnd = () => { t = (t * 1664525 + 1013904223) >>> 0; return t / 4294967296 }
   const seen = new Set<string>()
-  const out: { x: number; y: number; delay: number; dur: number }[] = []
-  while (out.length < 26) {
-    const x = 9 + Math.floor(rnd() * 22)
+  const out: Square[] = []
+  while (out.length < count) {
+    const x = minX + Math.floor(rnd() * spanX)
     const y = Math.floor(rnd() * 18)
     if (seen.has(x + ',' + y)) continue
     seen.add(x + ',' + y)
     out.push({ x, y, delay: +(rnd() * 8).toFixed(1), dur: +(5 + rnd() * 6).toFixed(1) })
   }
   return out
-})()
+}
+const SQUARES = makeSquares(7, 9, 22, 26)
+const SQUARES_PANEL = makeSquares(21, 0, 10, 14)
 
 function Field({ label, error, hint, children, aside, htmlFor }: { label: string; error?: string; hint?: string; children: ReactNode; aside?: ReactNode; htmlFor: string }) {
   return (
@@ -201,6 +204,9 @@ export default function Login({ onSignIn, notice, lastWho, onBack }: { onSignIn:
 
       <aside className="login__panel" aria-label="About KEOS">
         <img className="login__panel-bg" src={A + '/login-cover.webp'} alt="" />
+        <div className="login__grid login__grid--panel" aria-hidden="true">
+          {SQUARES_PANEL.map((q) => <i key={q.x + '-' + q.y} style={{ left: q.x * 50, top: q.y * 50, animationDelay: q.delay + 's', animationDuration: q.dur + 's' }} />)}
+        </div>
         <div className="login__panel-in">
           <div className="login__brand">
             <img className="login__brand-k" src={LOGO} alt="" />
