@@ -217,7 +217,6 @@ export default function Login({ onSignIn, notice, lastWho, onBack }: { onSignIn:
           </div>
 
           <div className="login__story">
-            <p className="login__pill"><i /> Enterprise intelligence</p>
             <h2>The Intelligence Operating System for Enterprise.</h2>
             <p className="login__lead">Unify enterprise data, knowledge, AI models and intelligent agents in one governed ecosystem.</p>
           </div>
