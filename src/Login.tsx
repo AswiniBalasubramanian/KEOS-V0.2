@@ -110,7 +110,7 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
   const [localNotice, setLocalNotice] = useState<Notice | null>(null)
   const [flow, setFlow] = useState<{ method?: MfaMethod; locked?: boolean; sso?: SsoStatus }>({})
   const [flowKey, setFlowKey] = useState(0)
-  const showStates = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('states')
+  const openStates = typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('states')
   const id = useId()
   const card = useRef<HTMLDivElement>(null)
 
@@ -325,8 +325,8 @@ export default function Login({ onSignIn, notice, lastWho }: { onSignIn: (who: s
             <button type="button" onClick={() => { go('signin'); setWho(TRIAL.email); setPassword(TRIAL.password) }}>Fill in</button>
           </div>
         </details>
-        {showStates && (
-          <details className="states" open>
+        {(
+          <details className="states" open={openStates}>
             <summary>Prototype states</summary>
             <div className="states__grid">
               {STATES.map((st) => <button key={st.key} type="button" onClick={() => preview(st.key)}>{st.label}</button>)}

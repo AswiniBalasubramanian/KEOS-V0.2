@@ -9,7 +9,7 @@ export default function App() {
   const [who, setWho] = useState<string | null>(signedInAs)
   const [notice, setNotice] = useState<Notice | null>(null)
   const [warn, setWarn] = useState(0)
-  const states = new URLSearchParams(window.location.search).has('states')
+  const openStates = new URLSearchParams(window.location.search).has('states')
 
   const leave = useCallback((why: Notice) => { clearSignIn(); setNotice(why); setWho(null) }, [])
   const expire = useCallback(() => leave('expired'), [leave])
@@ -20,8 +20,8 @@ export default function App() {
     <>
       <Conversation onSignOut={signOut} />
       <SessionGuard onExpire={expire} onSignOut={signOut} previewWarning={warn} />
-      {states && (
-        <details className="states" open>
+      {(
+        <details className="states" open={openStates}>
           <summary>Prototype states</summary>
           <div className="states__grid">
             <button type="button" onClick={() => setWarn((n) => n + 1)}>Session warning</button>
